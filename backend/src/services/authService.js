@@ -1,7 +1,7 @@
 import userModel from "../model/user.model.js";
 import { AppError } from "../utils/AppError.js";
 
-export async function registerService(name, email, password, role, contact) {
+export async function registerService(name, email, password, role, contact,isSeller) {
 
     if (!name || !email || !password || !contact) {
         throw new AppError("All fields are required", 400);
@@ -32,4 +32,18 @@ export async function registerService(name, email, password, role, contact) {
 
 
 
+}
+
+export async function loginService(email, password) {
+    if (!email || !password) {
+        throw new AppError("All fields are required", 400)
+    }
+    const user = await userModel.findOne({ email })
+    if (!user) {
+        throw new AppError("User not found", 400)
+    }
+    if (!user.comparePassword(password)) {
+        throw new AppError("Password is incorrect", 400)
+    }
+    return user
 }

@@ -55,4 +55,22 @@ export const registerValidator = [
     validate
 
 ];
-export const loginValidator = []
+export const loginValidator = [
+
+    // 📧 Email
+    body("email")
+        .trim()
+        .notEmpty().withMessage("Email is required")
+        .isEmail().withMessage("Enter a valid email")
+        .normalizeEmail(),
+
+    // 🔒 Password
+    body("password")
+        .notEmpty().withMessage("Password is required")
+        .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+        .matches(/[A-Z]/).withMessage("Must contain at least one uppercase letter")
+        .matches(/[a-z]/).withMessage("Must contain at least one lowercase letter")
+        .matches(/[0-9]/).withMessage("Must contain at least one number")
+        .matches(/[@$!%*?&]/).withMessage("Must contain at least one special character"),
+    validate
+]
