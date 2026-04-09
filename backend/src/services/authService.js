@@ -1,7 +1,7 @@
 import userModel from "../model/user.model.js";
 import { AppError } from "../utils/AppError.js";
 
-export async function registerService(name, email, password, role, contact,isSeller) {
+export async function registerService(name, email, password, role, contact) {
 
     if (!name || !email || !password || !contact) {
         throw new AppError("All fields are required", 400);

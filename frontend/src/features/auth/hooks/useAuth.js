@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
-import { login, register } from "../services/authApi.service"
-import { setLoading, setUser, setError } from "../store/auth.store"
+import { login, register } from "../services/authApi.service.js"
+import { setLoading, setUser, setError } from "../store/auth.store.js"
 
 
 function useAuth() {
@@ -36,3 +36,5 @@ function useAuth() {
         handleLogin
     }
 }
+
+export default useAuth

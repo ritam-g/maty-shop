@@ -37,23 +37,19 @@ export const registerValidator = [
     // 🔒 Password
     body("password")
         .notEmpty().withMessage("Password is required")
-        .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
-        .matches(/[A-Z]/).withMessage("Must contain at least one uppercase letter")
-        .matches(/[a-z]/).withMessage("Must contain at least one lowercase letter")
-        .matches(/[0-9]/).withMessage("Must contain at least one number")
-        .matches(/[@$!%*?&]/).withMessage("Must contain at least one special character"),
+        .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+        // Note: Strict character matching removed to match frontend simple validation
 
-    // 👤 Role (optional but controlled)
+    // 👤 Role (Fixed to match buyer/seller enum)
     body("role")
         .optional()
-        .isIn(["user", "admin"]).withMessage("Role must be user or admin"),
+        .isIn(["buyer", "seller"]).withMessage("Role must be buyer or seller"),
 
-    // 📱 Contact (Indian format example)
+    // 📱 Contact
     body("contact")
         .notEmpty().withMessage("Contact is required")
-        .matches(/^[6-9]\d{9}$/).withMessage("Enter valid 10-digit Indian phone number"),
+        .isLength({ min: 10, max: 15 }).withMessage("Contact must be between 10 and 15 digits"),
     validate
-
 ];
 export const loginValidator = [
 
@@ -67,10 +63,6 @@ export const loginValidator = [
     // 🔒 Password
     body("password")
         .notEmpty().withMessage("Password is required")
-        .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
-        .matches(/[A-Z]/).withMessage("Must contain at least one uppercase letter")
-        .matches(/[a-z]/).withMessage("Must contain at least one lowercase letter")
-        .matches(/[0-9]/).withMessage("Must contain at least one number")
-        .matches(/[@$!%*?&]/).withMessage("Must contain at least one special character"),
+        .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
     validate
 ]
