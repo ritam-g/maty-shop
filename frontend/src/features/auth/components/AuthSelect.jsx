@@ -1,44 +1,76 @@
-import React from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { UserCircle } from 'lucide-react';
 
-const AuthSelect = ({ label, icon: Icon, options, value, onChange, name, error, ...props }) => {
+const AuthSelect = forwardRef(({ 
+  label, 
+  name, 
+  defaultValue = 'buyer',
+  options = [], 
+  icon: Icon = UserCircle, 
+  error 
+}, ref) => {
+  const [selected, setSelected] = useState(defaultValue);
+
+  // Expose the value via ref for uncontrolled form handling
+  useImperativeHandle(ref, () => ({
+    value: selected
+  }));
+
   return (
-    <div className="w-full space-y-2">
-      <label className="block text-sm font-medium text-slate-300 ml-1">
-        {label}
-      </label>
-      <div className="relative group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors duration-200 pointer-events-none">
-          {Icon && <Icon size={20} />}
+    <div className="w-full relative py-3 mb-2">
+      <div className="group relative">
+        {/* Label and Icon */}
+        <div className="absolute left-0 top-1/2 -translate-y-[2.8rem] text-indigo-400 flex items-center gap-2">
+          {Icon && <Icon size={16} strokeWidth={1.5} />}
+          <label className="text-[10px] uppercase tracking-widest font-bold">
+            {label}
+          </label>
         </div>
-        
-        <select
-          name={name}
-          value={value}
-          onChange={onChange}
-          className={`w-full appearance-none bg-slate-900/50 border border-slate-700/50 text-white rounded-xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-300 backdrop-blur-sm ${error ? 'border-red-500' : ''}`}
-          {...props}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
-              {opt.label}
-            </option>
-          ))}
-        </select>
 
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-          <ChevronDown size={18} />
+        {/* Selection Area */}
+        <div className="flex gap-4 pt-4">
+          {options.map((option) => {
+            const isSelected = selected === option.value;
+            return (
+              <motion.button
+                key={option.value}
+                type="button"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelected(option.value)}
+                className={`relative flex-1 py-4 px-6 rounded-2xl border transition-all duration-500 overflow-hidden ${isSelected ? 'border-indigo-500/50 bg-indigo-500/10 shadow-[0_4px_20px_0_rgba(99,102,241,0.2)] text-white' : 'border-slate-800/50 bg-slate-900/10 text-slate-500 opacity-60 hover:opacity-100 hover:border-slate-700'}`}
+              >
+                {/* Active Indicator Glow */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      layoutId="active-select"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-violet-500/5 to-transparent pointer-events-none"
+                    />
+                  )}
+                </AnimatePresence>
+
+                <div className="relative font-bold tracking-tight text-sm uppercase">
+                  {option.label}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
 
+      {/* Error Message */}
       <AnimatePresence>
         {error && (
           <motion.p
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-xs text-red-500 ml-1"
+            exit={{ opacity: 0 }}
+            className="absolute left-0 -bottom-4 text-[10px] text-red-400 font-bold uppercase tracking-wider"
           >
             {error}
           </motion.p>
@@ -46,6 +78,6 @@ const AuthSelect = ({ label, icon: Icon, options, value, onChange, name, error, 
       </AnimatePresence>
     </div>
   );
-};
+});
 
 export default AuthSelect;

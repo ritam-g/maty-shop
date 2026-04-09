@@ -1,28 +1,38 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 
-const AuthButton = ({ children, isLoading, disabled, ...props }) => {
+const AuthButton = ({ children, isLoading, type = 'submit', className = '', onClick }) => {
   return (
     <motion.button
-      whileHover={{ scale: 1.01, boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)" }}
+      whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      disabled={isLoading || disabled}
-      className={`relative w-full overflow-hidden rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed`}
-      {...props}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
+      type={type}
+      disabled={isLoading}
+      onClick={onClick}
+      className={`relative w-full overflow-hidden group py-4 px-8 rounded-2xl font-bold tracking-widest uppercase transition-all duration-500 shadow-[0_12px_32px_-8px_rgba(99,102,241,0.5)] active:shadow-none bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 text-white disabled:grayscale disabled:opacity-50 text-sm ${className}`}
     >
-      <div className="flex items-center justify-center gap-2">
-        {isLoading && <Loader2 size={18} className="animate-spin" />}
-        <span>{children}</span>
-      </div>
+      {/* Background Glow Overlay */}
+      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       
       {/* Animated Shine Effect */}
-      <motion.div
-        initial={{ left: "-100%" }}
-        animate={{ left: "100%" }}
-        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-        className="absolute top-0 h-full w-1/3 skew-x-12 bg-white/10"
+      <motion.div 
+        animate={{ x: ['100%', '-100%'] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 pointer-events-none"
       />
+
+      <span className="relative flex items-center justify-center gap-3">
+        {isLoading ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+          />
+        ) : (
+          children
+        )}
+      </span>
     </motion.button>
   );
 };

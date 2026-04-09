@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@theme {
+  --animate-blob: blob 7s infinite;
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-50 antialiased overflow-x-hidden;
+    margin: 0;
+    font-family: var(--font-inter);
+  }
+  
+  /* Selection styling */
+  ::selection {
+    @apply bg-indigo-500/30 text-white;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+  }
+  
+  .glass-dark {
+    @apply bg-slate-900/60 backdrop-blur-3xl border border-white/5 shadow-2xl;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  }
+}
