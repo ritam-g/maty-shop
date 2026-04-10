@@ -37,3 +37,11 @@ export async function loginController(req, res, next) {
         next(error)
     }
 }
+
+
+export const googleController=(req,res,next)=>{
+    console.log('====================================');
+    console.log(req.user);
+    console.log('====================================');
+    res.redirect('http://localhost:5173/')
+}

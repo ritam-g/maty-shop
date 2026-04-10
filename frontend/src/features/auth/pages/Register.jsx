@@ -62,7 +62,7 @@ function Register() {
   ];
 
   return (
-    
+
     <AuthLayout
       title="Join the Circle."
       subtitle="Craft your digital ID within the Celestial Atelier collective."
@@ -163,6 +163,9 @@ function Register() {
               <Link to="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3">
                 Sign In
               </Link>
+              <a href="/api/auth/google" className="text-indigo-400 font-bold py-4    text-white hover:text-blue-300 font-serif transition-colors cursor-pointer ml-3">
+                Continue With Google
+              </a>
             </p>
           </div>
         </div>

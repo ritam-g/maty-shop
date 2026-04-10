@@ -101,6 +101,9 @@ function Login() {
               <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3">
                 Join the circle
               </Link>
+              <a href="/api/auth/google" className="text-indigo-400 font-bold py-4    text-white hover:text-blue-300 font-serif transition-colors cursor-pointer ml-3">
+                Continue With Google
+              </a>
             </p>
           </div>
         </div>
