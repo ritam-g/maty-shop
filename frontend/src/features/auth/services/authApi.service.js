@@ -6,7 +6,7 @@ const baseURL = import.meta.env.VITE_BASE_URL
 
 
 const authApi = axios.create({
-    baseURL,
+    baseURL:'/api/auth',
     withCredentials: true
 })
 
@@ -16,5 +16,10 @@ export async function register({ name, email, password, role, contact}) {
 }
 export async function login({ email, password }) {
     const response = await authApi.post('/login', { email, password });
+    return response.data
+}
+
+export async function getMe() {
+    const response = await authApi.get('/me');
     return response.data
 }
