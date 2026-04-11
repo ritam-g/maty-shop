@@ -48,6 +48,22 @@ export async function loginService(email, password) {
     return user
 }
 
-export async function name(params) {
-    
+export async function loginWithGoogle(googleUser) {
+    const { _json, id } = googleUser
+    const { name, email, } = _json
+
+    // first chek its exest ot not 
+    let user = await userModel.findOne({ email, googleId: id })
+
+    if (!user) {
+        user = await userModel.create({
+            name,
+            email,
+            googleId: id
+        })
+        console.log('user created ');
+
+    }
+
+    return user
 }

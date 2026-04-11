@@ -1,6 +1,6 @@
 import { AppConfig } from "../config/config.js"
 import userModel from "../model/user.model.js"
-import { loginService, registerService } from "../services/authService.js"
+import { loginService, loginWithGoogle, registerService } from "../services/authService.js"
 import { generateToken } from "../utils/tokenService.js"
 import jwt from 'jsonwebtoken'
 
@@ -28,6 +28,7 @@ export async function loginController(req, res, next) {
     try {
         const user = await loginService(email, password)
         const token = generateToken(user.id, user.email)
+        res.cookie('token', token, { httpOnly: true })
         res.status(200).json({
             user,
             token,
@@ -47,30 +48,19 @@ export const googleController = async (req, res, next) => {
     console.log(req.user);
     console.log('====================================');
 
-    // here i have to make feture if user is not  in db then i have to create user
-    // if in the db then cehk propperly
-    // end of the day add toekn also 
+    try {
+        // here i have to make feture if user is not  in db then i have to create user
+        // if in the db then cehk propperly
+        // end of the day add toekn also 
 
-    const { _json, id } = req.user
-    const { name, email, } = _json
+        const user = await loginWithGoogle(req.user)
 
-    // first chek its exest ot not 
-    let user = await userModel.findOne({ email, googleId: id })
+        const token = generateToken(user.id, user.email)
 
-    if (!user) {
-         user= await userModel.create({
-            name,
-            email,
-            googleId: id
-        })
-        console.log('user created ');
-        
+        res.cookie('token', token, { httpOnly: true })
+
+        res.redirect('http://localhost:5173/')
+    } catch (error) {
+        next(error)
     }
-
-    const token=jwt.sign({id:user.id,email},AppConfig.JWT_SECRET,{expiresIn:AppConfig.JWT_EXPIRES_IN || "1d"})
-
-    res.cookie('token',token,{httpOnly:true})
-
-    
-    res.redirect('http://localhost:5173/')
 }
