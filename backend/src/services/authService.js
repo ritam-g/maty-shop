@@ -47,3 +47,7 @@ export async function loginService(email, password) {
     }
     return user
 }
+
+export async function name(params) {
+    
+}

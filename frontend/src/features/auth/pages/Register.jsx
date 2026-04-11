@@ -8,6 +8,7 @@ import AuthSelect from '../components/AuthSelect';
 import AuthButton from '../components/AuthButton';
 import AuthInput from '../components/AuthInput';
 import AuthLayout from '../components/AuthLayout';
+import ContinueWithGoogle from '../components/ContinueWithGoogle';
 
 function Register() {
   const { handleRegister } = useAuth();
@@ -160,13 +161,16 @@ function Register() {
           <div className="text-center">
             <p className="text-slate-500 text-xs tracking-widest uppercase">
               Already a member?{' '}
-              <Link to="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3">
+              <Link
+                to="/login"
+                className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3"
+              >
                 Sign In
               </Link>
-              <a href="/api/auth/google" className="text-indigo-400 font-bold py-4    text-white hover:text-blue-300 font-serif transition-colors cursor-pointer ml-3">
-                Continue With Google
-              </a>
             </p>
+
+            {/* Google Button */}
+            <ContinueWithGoogle />
           </div>
         </div>
       </form>

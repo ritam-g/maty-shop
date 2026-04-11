@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
- import useAuth from '../hooks/useAuth';// Note: keeping hooks in features/auth as requested
+import useAuth from '../hooks/useAuth';// Note: keeping hooks in features/auth as requested
 import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
 import AuthLayout from '../components/AuthLayout';
+import ContinueWithGoogle from '../components/ContinueWithGoogle';
 
 
 function Login() {
@@ -98,13 +99,16 @@ function Login() {
           <div className="text-center">
             <p className="text-slate-500 text-xs tracking-widest uppercase">
               New Here?{' '}
-              <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3">
+              <Link
+                to="/register"
+                className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors cursor-pointer ml-3"
+              >
                 Join the circle
               </Link>
-              <a href="/api/auth/google" className="text-indigo-400 font-bold py-4    text-white hover:text-blue-300 font-serif transition-colors cursor-pointer ml-3">
-                Continue With Google
-              </a>
             </p>
+
+            {/* Google Button */}
+            <ContinueWithGoogle />
           </div>
         </div>
       </form>
