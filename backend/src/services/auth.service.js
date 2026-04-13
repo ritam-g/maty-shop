@@ -26,9 +26,10 @@ export async function registerService(name, email, password, role, contact) {
         contact
     })
 
-    const { password: _, ...saveUser } = user
+    const savedUser = user.toObject()
+    delete savedUser.password
 
-    return saveUser
+    return savedUser
 
 
 
@@ -42,7 +43,8 @@ export async function loginService(email, password) {
     if (!user) {
         throw new AppError("User not found", 400)
     }
-    if (!user.comparePassword(password)) {
+    const isPasswordCorrect = await user.comparePassword(password)
+    if (!isPasswordCorrect) {
         throw new AppError("Password is incorrect", 400)
     }
     return user

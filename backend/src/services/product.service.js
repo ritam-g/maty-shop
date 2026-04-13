@@ -30,7 +30,7 @@ export async function createProductService(
     if (!allImagesWithLink || allImagesWithLink.length === 0) {
         throw new AppError("Image upload failed", 500);
     }
-
+   
     // ✅ create product
     const product = await productModel.create({
         user,

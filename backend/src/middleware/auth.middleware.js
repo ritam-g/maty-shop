@@ -1,6 +1,6 @@
 import { AppError } from "../utils/AppError.js"
 import { verifyToken } from "../utils/tokenService.js"
-
+import jwt from 'jsonwebtoken'
 export async function authMiddleware(req, res, next) {
     const token = req.cookies.token
     try {
