@@ -2,13 +2,17 @@ import { AppConfig } from "../config/config.js"
 import userModel from "../model/user.model.js"
 import { loginService, loginWithGoogle, registerService } from "../services/authService.js"
 import { generateToken } from "../utils/tokenService.js"
-import jwt from 'jsonwebtoken'
+
 
 export async function registerController(req, res, next) {
     try {
         const { name, email, password, role, contact } = req.body
         const createdUser = await registerService(name, email, password, role, contact)
-        const token = generateToken(createdUser.id, createdUser.email)
+        const token = generateToken(createdUser.id, createdUser.email, createdUser.role)
+        console.log('====================================');
+        console.log(token);
+        console.log('====================================');
+        res.cookie('token', token, { httpOnly: true })
         res.status(201).json({
             user: createdUser,
             token,
@@ -27,7 +31,7 @@ export async function loginController(req, res, next) {
     const { email, password } = req.body
     try {
         const user = await loginService(email, password)
-        const token = generateToken(user.id, user.email)
+        const token = generateToken(user.id, user.email, user.role)
         res.cookie('token', token, { httpOnly: true })
         res.status(200).json({
             user,

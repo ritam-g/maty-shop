@@ -6,6 +6,7 @@ import authRouter from './routes/auth.route.js';
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { AppConfig } from './config/config.js';
+import productRouter from './routes/product.route.js';
 const app = express();
 
 app.use(express.json());
@@ -29,7 +30,7 @@ passport.use(new GoogleStrategy({
 // rote
 
 app.use('/api/auth', authRouter)
-
+app.use('/api/user', productRouter)
 
 app.use(globalErrorHandler);
 
