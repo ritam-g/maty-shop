@@ -43,7 +43,7 @@ passport.use(new GoogleStrategy({
 
 // Route configuration
 app.use('/api/auth', authRouter) // Authentication routes
-app.use('/api/user', productRouter) // Product routes
+app.use('/api/product', productRouter) // Product routes
 
 // Global error handler middleware
 app.use(globalErrorHandler);
