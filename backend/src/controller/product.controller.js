@@ -48,7 +48,9 @@ export async function getUserProduct(req, res, next) {
     const user = req.user
     try {
         const products = await getAllProductsService(user.id)
-
+        console.log('====================================');
+        console.log('getUserProduct route ');
+        console.log('====================================');
         res.status(200).json({
             products,
             success: true

@@ -21,7 +21,7 @@ export function UseProduct() {
         dispatch(setLoading(true))
         try {
             const data = await getProduct()
-            dispatch(setProduct(data.product))
+            dispatch(setProduct(data.products))
         } catch (error) {
             dispatch(setError(error.message))
         }
@@ -29,5 +29,5 @@ export function UseProduct() {
             dispatch(setLoading(false))
         }
     }
-    return {}
+    return { createProductHandeler, getProductHandeler }
 }
