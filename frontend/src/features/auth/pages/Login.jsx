@@ -9,7 +9,14 @@ import AuthButton from '../components/AuthButton';
 import AuthLayout from '../components/AuthLayout';
 import ContinueWithGoogle from '../components/ContinueWithGoogle';
 
-
+/**
+ * Login page component for user authentication
+ * Handles user login with email and password
+ * Supports Google OAuth authentication
+ * 
+ * @component
+ * @returns {JSX.Element} The login page UI
+ */
 function Login() {
   const { handleLogin } = useAuth();
   const { isLoading, error } = useSelector((state) => state.auth);

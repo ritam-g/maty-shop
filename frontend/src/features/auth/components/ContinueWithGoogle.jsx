@@ -1,5 +1,12 @@
 import React from 'react'
 
+/**
+ * Google OAuth authentication button component
+ * Provides a styled button that redirects users to Google OAuth login flow
+ * 
+ * @component
+ * @returns {JSX.Element} A styled anchor element linking to Google OAuth endpoint
+ */
 function ContinueWithGoogle() {
     return (
         <>

@@ -1,6 +1,16 @@
 import userModel from "../model/user.model.js";
 import { AppError } from "../utils/AppError.js";
 
+/**
+ * Registers a new user in the system
+ * @param {string} name - The user's full name
+ * @param {string} email - The user's email address (must be unique)
+ * @param {string} password - The user's password (will be hashed before storage)
+ * @param {string} role - The user's role (e.g., 'user', 'admin')
+ * @param {string} contact - The user's contact number
+ * @returns {Promise<Object>} The created user object (password removed)
+ * @throws {AppError} If validation fails or user already exists
+ */
 export async function registerService(name, email, password, role, contact) {
 
     if (!name || !email || !password || !contact) {
@@ -35,6 +45,13 @@ export async function registerService(name, email, password, role, contact) {
 
 }
 
+/**
+ * Authenticates a user with email and password
+ * @param {string} email - The user's email address
+ * @param {string} password - The user's password
+ * @returns {Promise<Object>} The authenticated user object
+ * @throws {AppError} If credentials are invalid or user not found
+ */
 export async function loginService(email, password) {
     if (!email || !password) {
         throw new AppError("All fields are required", 400)
@@ -50,6 +67,14 @@ export async function loginService(email, password) {
     return user
 }
 
+/**
+ * Handles Google OAuth login - creates user if doesn't exist, returns existing user
+ * @param {Object} googleUser - The Google OAuth user object containing profile data
+ * @param {Object} googleUser._json - The JSON profile data from Google
+ * @param {string} googleUser.id - The Google user ID
+ * @returns {Promise<Object>} The user object (existing or newly created)
+ * @throws {Error} If there's an issue with user creation or lookup
+ */
 export async function loginWithGoogle(googleUser) {
     const { _json, id } = googleUser
     const { name, email, } = _json

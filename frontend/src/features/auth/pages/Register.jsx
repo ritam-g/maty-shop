@@ -10,6 +10,14 @@ import AuthInput from '../components/AuthInput';
 import AuthLayout from '../components/AuthLayout';
 import ContinueWithGoogle from '../components/ContinueWithGoogle';
 
+/**
+ * Registration page component for new user sign-up
+ * Handles user registration with full name, email, password, contact, and role selection
+ * Supports Google OAuth authentication
+ * 
+ * @component
+ * @returns {JSX.Element} The registration page UI
+ */
 function Register() {
   const { handleRegister } = useAuth();
   const { isLoading, error } = useSelector((state) => state.auth);

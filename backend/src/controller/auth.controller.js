@@ -1,11 +1,24 @@
 import { loginService, loginWithGoogle, registerService } from "../services/auth.service.js"
 import { generateToken } from "../utils/tokenService.js"
 
+/**
+ * Extracts the user ID from a user object in a standardized way
+ * @param {Object} user - The user object containing ID information
+ * @returns {string|null} The user ID as a string, or null if not available
+ */
 function resolveUserId(user) {
     return user?._id?.toString?.() || user?.id || null
 }
 
 
+/**
+ * Handles user registration requests
+ * @param {Object} req - Express request object containing user registration data in req.body
+ * @param {Object} res - Express response object for sending the response
+ * @param {Function} next - Express next middleware function for error handling
+ * @returns {Object} JSON response with created user, authentication token, and success status
+ * @throws {Error} Passes any errors to the next middleware for handling
+ */
 export async function registerController(req, res, next) {
     try {
         const { name, email, password, role, contact } = req.body
@@ -29,6 +42,14 @@ export async function registerController(req, res, next) {
 }
 
 
+/**
+ * Handles user login requests with email and password authentication
+ * @param {Object} req - Express request object containing login credentials in req.body
+ * @param {Object} res - Express response object for sending the response
+ * @param {Function} next - Express next middleware function for error handling
+ * @returns {Object} JSON response with authenticated user, authentication token, and success status
+ * @throws {Error} Passes any errors to the next middleware for handling
+ */
 export async function loginController(req, res, next) {
     const { email, password } = req.body
     try {
@@ -49,6 +70,14 @@ export async function loginController(req, res, next) {
 }
 
 
+/**
+ * Handles Google OAuth authentication callback
+ * @param {Object} req - Express request object containing Google OAuth user data in req.user
+ * @param {Object} res - Express response object for redirecting the user
+ * @param {Function} next - Express next middleware function for error handling
+ * @returns {void} Sets authentication cookie and redirects to frontend application
+ * @throws {Error} Passes any errors to the next middleware for handling
+ */
 export const googleController = async (req, res, next) => {
     console.log('====================================');
     console.log(req.user);
