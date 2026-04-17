@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux"
-import { createProduct, getAllProducts, getProduct } from "../services/product.api"
+import { createProduct, getAllProducts, getProduct, getProductById } from "../services/product.api"
 import { setError, setLoading, setProduct, setAllProducts } from "../state/product.slice"
 
 export function UseProduct() {
@@ -44,10 +44,13 @@ export function UseProduct() {
     async function getProductByIdHandeller(productId) {
         dispatch(setLoading(true))
         try {
-            const data = await getProduct(productId)
+            const data = await getProductById(productId)
+            dispatch(setProduct(data.product))
             return data.product
         } catch (error) {
-            dispatch(setError(error.message))
+            const message = error?.response?.data?.message || error.message
+            dispatch(setError(message))
+            return null
         }
         finally {
             dispatch(setLoading(false))

@@ -1,25 +1,22 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
-function Protected({ children, role = "buyer" }) {
+function Protected({ children, allowedRoles = null }) {
     const user = useSelector((state) => state.auth.user)
     const loading = useSelector((state) => state.auth.isLoading)
-    const navigate = useNavigate()
-
-    useEffect(() => {
-        if (!user && !loading) {
-            navigate('/login')
-        } else if (user && user.role !== role) {
-            navigate('/')
-        }
-    }, [user, loading, role, navigate])
 
     if (loading) {
         return <div>Loading...</div>
     }
 
-    if (!user) return null
+    if (!user) {
+        return <Navigate to="/login" replace />
+    }
+
+    if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" replace />
+    }
 
     return <>{children}</>
 }

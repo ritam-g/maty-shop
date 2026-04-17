@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
   const { name, description, price, currency, images, quantity } = product;

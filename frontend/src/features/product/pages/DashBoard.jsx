@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UseProduct } from '../hooks/useProduct';
 import { useSelector } from 'react-redux';
 import { PackageX, ShoppingBag, Eye, TrendingUp } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 // Skeleton Loading Card
 const ProductSkeleton = () => (

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UseProduct } from '../hooks/useProduct';
 import { useSelector } from 'react-redux';
 import { UploadCloud, X, Image as ImageIcon, CheckCircle, Package } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 const CreateProduct = () => {
     const { createProductHandeler } = UseProduct();

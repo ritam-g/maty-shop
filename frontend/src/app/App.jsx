@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
-import { RouterProvider } from 'react-router'
-import { router } from '../routes'
-import {useSelector } from 'react-redux'
+import { BrowserRouter } from 'react-router-dom'
+import { AppRoutes } from '../routes'
 
 import useAuth from '../features/auth/hooks/useAuth'
 function App() {
@@ -12,12 +11,9 @@ function App() {
   }, [])
  
   return (
-    <>
-      
-        <RouterProvider router={router} />
-    
-
-    </>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
 
