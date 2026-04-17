@@ -94,3 +94,11 @@ export async function loginWithGoogle(googleUser) {
 
     return user
 }
+
+export async function getMeUser(userId) {
+    const user = await userModel.findById(userId)
+    if(!user){
+        throw new AppError("User not found", 400)
+    }
+    return user
+}

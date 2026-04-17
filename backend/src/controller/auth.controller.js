@@ -1,4 +1,4 @@
-import { loginService, loginWithGoogle, registerService } from "../services/auth.service.js"
+import { getMeUser, loginService, loginWithGoogle, registerService } from "../services/auth.service.js"
 import { generateToken } from "../utils/tokenService.js"
 
 /**
@@ -97,5 +97,20 @@ export const googleController = async (req, res, next) => {
         res.redirect('http://localhost:5173/')
     } catch (error) {
         next(error)
+    }
+}
+
+
+export async function getMeController(req, res, next) {
+    try {
+        const user = await getMeUser(req.user.id)
+        return res.status(200).json({
+            user,
+            success: true
+        })
+    } catch (error) {
+        console.log(error);
+        next(error)
+
     }
 }

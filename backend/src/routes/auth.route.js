@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { loginValidator, registerValidator } from "../validator/auth.validator.js";
-import { googleController, loginController, registerController } from "../controller/auth.controller.js";
+import { getMeController, googleController, loginController, registerController } from "../controller/auth.controller.js";
 import passport from 'passport'
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 /**
  * Express router for authentication routes
@@ -30,7 +31,7 @@ authRouter.post("/login", loginValidator, loginController);
  * Retrieves the current authenticated user's information
  * TODO: Implement this endpoint with proper authentication middleware
  */
-authRouter.get("/me", () => { });
+authRouter.get("/me",authMiddleware,getMeController);
 
 /**
  * GET /auth/google
