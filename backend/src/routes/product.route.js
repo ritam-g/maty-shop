@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.middleware.js'
-import { createProduct, getUserProduct } from '../controller/product.controller.js'
+import { createProduct, getAllProductController, getUserProduct } from '../controller/product.controller.js'
 import { upload } from '../middleware/upload.middleware.js'
 
 /**
@@ -31,5 +31,14 @@ productRouter.post('/create', upload.array('images', 5), authMiddleware, createP
  * @access Private (requires authentication)
  */
 productRouter.get('/getProduct', authMiddleware, getUserProduct)
+/**  
+ * GET /product
+ * Retrieves all products
+ * 
+ * @route GET /api/product
+ * @returns {Object[]} Array of product objects
+ * @access Public
+ */
+productRouter.get('/',getAllProductController)
 
 export default productRouter

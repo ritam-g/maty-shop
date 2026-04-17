@@ -77,3 +77,6 @@ export async function getAllProductsService(id) {
     }
     return products;
 }
+
+
+

@@ -1,3 +1,4 @@
+import productModel from "../model/product.model.js";
 import { createProductService, getAllProductsService } from "../services/product.service.js"
 import { AppError } from "../utils/AppError.js";
 
@@ -60,5 +61,33 @@ export async function getUserProduct(req, res, next) {
         console.log(error);
         console.log('====================================');
         next(error)
+    }
+}
+
+/**  
+ * Retrieves all products from the database
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Object} JSON response with all products and success status
+ */
+export async function getAllProductController(req, res, next) {
+    try {
+        const products=await productModel.find()
+
+        if(!products){
+            throw new AppError("No products found",404)
+        }
+        res.status(200).json({
+            products,
+            success: true,
+            message:"All products fetched successfully"
+        })
+    } catch (error) {
+        console.log(error);
+
+        next(error)
+
     }
 }
