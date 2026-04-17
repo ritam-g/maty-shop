@@ -1,11 +1,16 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import ProductSkeleton from './ProductSkeleton';
+import { useNavigate } from 'react-router';
 
 const ProductGrid = ({ products, isLoading }) => {
+  const navigate = useNavigate()
+ 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div
+
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {[...Array(8)].map((_, i) => (
           <ProductSkeleton key={i} />
         ))}
@@ -24,11 +29,15 @@ const ProductGrid = ({ products, isLoading }) => {
       </div>
     );
   }
+  
+  
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div
+     
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
       {products.map((product) => (
-        <ProductCard key={product._id || product.name} product={product} />
+        <ProductCard  key={product._id || product.name} product={product} />
       ))}
     </div>
   );

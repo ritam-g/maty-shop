@@ -5,11 +5,12 @@ import CreateProduct from '../features/product/pages/CreateProduct'
 import DashBoard from '../features/product/pages/DashBoard'
 import Protected from '../features/auth/components/Protected'
 import Home from '../features/product/pages/Home'
+import ProductDetailPage from '../features/product/pages/ProductDetailPage'
 
 export const router = createBrowserRouter([
     {
         path: '/',
-        element: <Protected><Home/></Protected>
+        element: <Protected><Home /></Protected>
     },
     {
         path: '/login',
@@ -32,5 +33,10 @@ export const router = createBrowserRouter([
                 element: <Protected role='seller' > <DashBoard /></Protected >
             }
         ]
+    },
+    {
+        path:`/product/:id`,
+        element: <Protected><ProductDetailPage /></Protected>
+
     }
 ])

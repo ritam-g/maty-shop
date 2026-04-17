@@ -3,16 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import { useNavigate } from 'react-router';
 
 const ProductCard = ({ product }) => {
   const { name, description, price, currency, images, quantity } = product;
   const [isHovered, setIsHovered] = useState(false);
-
+  const navigate = useNavigate()
   // Filter out PDFs and get valid images
   const validImages = Array.isArray(images) ? images.filter(img => typeof img === 'string' && !img.toLowerCase().endsWith('.pdf')) : [];
   const primaryImage = validImages.length > 0 ? validImages[0] : null;
   const hoverImage = validImages.length > 1 ? validImages[1] : primaryImage;
-
+ 
   const formatPrice = (amount, curr) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -28,8 +29,10 @@ const ProductCard = ({ product }) => {
     return <Badge variant="error">Out of Stock</Badge>;
   };
 
+
   return (
     <motion.div
+   
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -48,10 +51,13 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Image Section */}
-      <div className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
+      <div
+      
+      className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
         {primaryImage ? (
           <AnimatePresence mode="wait">
             <motion.img
+           
               key={isHovered ? 'hover' : 'primary'}
               src={isHovered ? hoverImage : primaryImage}
               alt={name}
@@ -67,20 +73,23 @@ const ProductCard = ({ product }) => {
             <span className="text-slate-500 font-medium">No Image</span>
           </div>
         )}
-        
+
         <div className="absolute bottom-4 left-4 z-10">
           {stockStatus()}
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-6 pt-2">
+      <div
+       
+      className="p-6 pt-2">
+
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
             {name}
           </h3>
         </div>
-        
+
         <p className="text-slate-400 text-sm mb-6 line-clamp-2 min-h-[2.5rem]">
           {description}
         </p>
@@ -92,7 +101,7 @@ const ProductCard = ({ product }) => {
               {formatPrice(price, currency)}
             </span>
           </div>
-          
+
           <Button variant="primary" className="p-3 !rounded-2xl">
             <ShoppingCart size={20} />
           </Button>
