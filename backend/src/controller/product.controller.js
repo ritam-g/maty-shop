@@ -1,5 +1,6 @@
 import productModel from "../model/product.model.js";
-import { createProductService, getAllProductsService } from "../services/product.service.js"
+import mongoose from "mongoose";
+import { createProductService, getAllProductsService, getProductByIdService } from "../services/product.service.js"
 import { AppError } from "../utils/AppError.js";
 
 /**
@@ -79,6 +80,7 @@ export async function getAllProductController(req, res, next) {
         if(!products){
             throw new AppError("No products found",404)
         }
+
         res.status(200).json({
             products,
             success: true,
@@ -89,5 +91,32 @@ export async function getAllProductController(req, res, next) {
 
         next(error)
 
+    }
+}
+
+/**
+ * Retrieves a single product by ID.
+ *
+ * @param {Object} req - Express request object with params.id
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Object} JSON response with one product and success status
+ */
+export async function getProductByIdController(req, res, next) {
+    const { id } = req.params;
+
+    try {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new AppError("Invalid product ID", 400);
+        }
+      
+        const product = await getProductByIdService(id);
+        res.status(200).json({
+            product,
+            success: true,
+            message: "Product fetched successfully"
+        });
+    } catch (error) {
+        next(error);
     }
 }

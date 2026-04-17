@@ -78,5 +78,21 @@ export async function getAllProductsService(id) {
     return products;
 }
 
+/**
+ * Retrieves one product by its unique ID.
+ *
+ * @param {string} id - Product document ID.
+ * @returns {Promise<Object>} Product document.
+ * @throws {AppError} If product is not found.
+ */
+export async function getProductByIdService(id) {
+    const product = await productModel.findById(id);
+    if (!product) {
+        throw new AppError("Product not found", 404);
+    }
+
+    return product;
+}
+
 
 

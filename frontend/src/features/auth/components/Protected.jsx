@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 function Protected({ children, role = "buyer" }) {
     const user = useSelector((state) => state.auth.user)

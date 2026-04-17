@@ -1,11 +1,8 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import ProductSkeleton from './ProductSkeleton';
-import { useNavigate } from 'react-router';
 
 const ProductGrid = ({ products, isLoading }) => {
-  const navigate = useNavigate()
- 
   if (isLoading) {
     return (
       <div

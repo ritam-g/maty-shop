@@ -8,7 +8,21 @@ import { useNavigate } from 'react-router';
 const ProductCard = ({ product }) => {
   const { name, description, price, currency, images, quantity } = product;
   const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const productId = product?._id || product?.id;
+
+  const handleCardClick = () => {
+    if (!productId) return;
+    navigate(`/product/${productId}`);
+  };
+
+  const handleCardKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCardClick();
+    }
+  };
+
   // Filter out PDFs and get valid images
   const validImages = Array.isArray(images) ? images.filter(img => typeof img === 'string' && !img.toLowerCase().endsWith('.pdf')) : [];
   const primaryImage = validImages.length > 0 ? validImages[0] : null;
@@ -38,14 +52,29 @@ const ProductCard = ({ product }) => {
       animate={{ opacity: 1, y: 0 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="group relative bg-slate-900/40 border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-sm transition-all duration-500 hover:border-indigo-500/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      tabIndex={0}
+      className="group relative bg-slate-900/40 border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-sm transition-all duration-500 hover:border-indigo-500/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
     >
       {/* Quick Action Buttons */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-slate-950 transition-colors">
+        <button
+          type="button"
+          onClick={(event) => event.stopPropagation()}
+          className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-slate-950 transition-colors"
+        >
           <Heart size={18} />
         </button>
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-slate-950 transition-colors">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleCardClick();
+          }}
+          className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-slate-950 transition-colors"
+        >
           <Eye size={18} />
         </button>
       </div>
@@ -102,7 +131,11 @@ const ProductCard = ({ product }) => {
             </span>
           </div>
 
-          <Button variant="primary" className="p-3 !rounded-2xl">
+          <Button
+            variant="primary"
+            className="p-3 !rounded-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
             <ShoppingCart size={20} />
           </Button>
         </div>

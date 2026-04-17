@@ -40,5 +40,18 @@ export function UseProduct() {
             dispatch(setLoading(false))
         }
     }
-    return { createProductHandeler, getProductHandeler , getAllProductHandeller}
+
+    async function getProductByIdHandeller(productId) {
+        dispatch(setLoading(true))
+        try {
+            const data = await getProduct(productId)
+            return data.product
+        } catch (error) {
+            dispatch(setError(error.message))
+        }
+        finally {
+            dispatch(setLoading(false))
+        }
+    }
+    return { createProductHandeler, getProductHandeler , getAllProductHandeller , getProductByIdHandeller}
 }
