@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
-import { createProduct, getProduct } from "../services/product.api"
-import { setError, setLoading, setProduct } from "../state/product.slice"
+import { createProduct, getAllProducts, getProduct } from "../services/product.api"
+import { setError, setLoading, setProduct, setAllProducts } from "../state/product.slice"
 
 export function UseProduct() {
     const dispatch = useDispatch()
@@ -29,5 +29,16 @@ export function UseProduct() {
             dispatch(setLoading(false))
         }
     }
-    return { createProductHandeler, getProductHandeler }
+    async function getAllProductHandeller() {
+        try {
+            dispatch(setLoading(true))
+            const data = await getAllProducts()
+            dispatch(setAllProducts(data.products))
+        } catch (error) {
+            dispatch(setError(error.message))
+        } finally {
+            dispatch(setLoading(false))
+        }
+    }
+    return { createProductHandeler, getProductHandeler , getAllProductHandeller}
 }
