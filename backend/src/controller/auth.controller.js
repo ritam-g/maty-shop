@@ -93,8 +93,13 @@ export const googleController = async (req, res, next) => {
         const token = generateToken(resolveUserId(user), user.email, user.role)
 
         res.cookie('token', token, { httpOnly: true })
-
-        res.redirect('http://localhost:5173/')
+        if(user.role !=='buyer'){
+            res.redirect('http://localhost:5173/seller/dashboard')
+        }
+        else{
+            res.redirect('http://localhost:5173/')
+        }
+        
     } catch (error) {
         next(error)
     }

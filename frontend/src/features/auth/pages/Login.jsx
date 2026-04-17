@@ -44,8 +44,25 @@ function Login() {
       return;
     }
 
-    const success = await handleLogin({ email, password });
-    if (success) navigate("/");
+    try {
+      const user = await handleLogin({ email, password });
+      if (!user) return;
+      console.log('helo');
+      
+      if (user.role === "seller") {
+        navigate("/seller/dashboard");
+        return;
+      }
+
+      if (user.role === "buyer") {
+        navigate("/");
+        return;
+      }
+    } catch (error) {
+      console.log(error);
+
+    }
+
 
 
   };

@@ -11,7 +11,7 @@ function useAuth() {
         try {
             const data = await register({ name, email, password, role, contact })
             dispatch(setUser(data.user))
-            return data.success
+            return data.user
         } catch (error) {
             dispatch(setError(error.message))
         } finally {
@@ -24,7 +24,7 @@ function useAuth() {
         try {
             const data = await login({ email, password })
             dispatch(setUser(data.user))
-            return data.success
+            return data.user
         } catch (error) {
             dispatch(setError(error.message))
         } finally {
@@ -37,6 +37,7 @@ function useAuth() {
         try {
             const data = await getMe()
             dispatch(setUser(data.user))
+            return data.user
         } catch (error) {
             console.log('====================================');
             console.log(error.message);
