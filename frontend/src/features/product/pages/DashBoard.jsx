@@ -45,7 +45,7 @@ const EmptyState = () => (
     </motion.div>
 );
 
-const ProductList = () => {
+const DashBoard = () => {
     const { getProductHandeler } = UseProduct();
     const { product, isLoading, error } = useSelector((state) => state.product);
 
@@ -76,7 +76,7 @@ const ProductList = () => {
                         <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tighter">Your Collection.</h1>
                         <p className="text-slate-400 font-medium">Manage and monitor the artifacts in your commercial domain.</p>
                     </div>
-                    <Link to="/create-product" className="group relative px-6 py-3.5 rounded-xl font-bold tracking-widest uppercase transition-all duration-300 shadow-lg bg-white text-slate-950 hover:scale-105 text-[10px] overflow-hidden flex items-center gap-2">
+                    <Link to="/seller/create-product" className="group relative px-6 py-3.5 rounded-xl font-bold tracking-widest uppercase transition-all duration-300 shadow-lg bg-white text-slate-950 hover:scale-105 text-[10px] overflow-hidden flex items-center gap-2">
                         <div className="absolute inset-0 bg-slate-100 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <span className="relative">Create New Item</span>
                     </Link>
@@ -173,4 +173,4 @@ const ProductList = () => {
     );
 };
 
-export default ProductList;
+export default DashBoard;

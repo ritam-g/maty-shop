@@ -74,7 +74,7 @@ const CreateProduct = () => {
             setFormData({ name: '', description: '', price: '', currency: 'INR', quantity: '' });
             setImages([]);
             setImagePreviews([]);
-            navigate('/products')
+            navigate('/seller/dashboard')
             setTimeout(() => setSuccessMessage(false), 3000);
         }
     };
