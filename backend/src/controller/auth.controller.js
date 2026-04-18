@@ -101,6 +101,9 @@ export const googleController = async (req, res, next) => {
         }
         
     } catch (error) {
+        console.log('====================================');
+        console.log(error);
+        console.log('====================================');
         next(error)
     }
 }

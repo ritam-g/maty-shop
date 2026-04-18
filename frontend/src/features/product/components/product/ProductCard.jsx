@@ -24,16 +24,27 @@ const ProductCard = ({ product }) => {
   };
 
   // Filter out PDFs and get valid images
-  const validImages = Array.isArray(images) ? images.filter(img => typeof img === 'string' && !img.toLowerCase().endsWith('.pdf')) : [];
+  console.log("PRODUCT:", product);
+  console.log("IMAGES:", product?.images);
+  const validImages = Array.isArray(images) 
+    ? images
+        .map(img => img?.url || (typeof img === 'string' ? img : null))
+        .filter(url => typeof url === 'string' && url.trim() !== '' && !url.toLowerCase().endsWith('.pdf'))
+    : [];
+    
   const primaryImage = validImages.length > 0 ? validImages[0] : null;
   const hoverImage = validImages.length > 1 ? validImages[1] : primaryImage;
  
+  const getPriceAmount = (p) => (p && typeof p === 'object' && p.amount !== undefined) ? p.amount : p;
+  const getPriceCurrency = (p, defaultCurr) => (p && typeof p === 'object' && p.currency) ? p.currency : defaultCurr;
+
   const formatPrice = (amount, curr) => {
+    const numValue = Number(amount);
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: curr || 'INR',
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(isNaN(numValue) ? 0 : numValue);
   };
 
   const stockStatus = () => {
@@ -46,7 +57,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <motion.div
-   
+
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -81,12 +92,12 @@ const ProductCard = ({ product }) => {
 
       {/* Image Section */}
       <div
-      
-      className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
+
+        className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
         {primaryImage ? (
           <AnimatePresence mode="wait">
             <motion.img
-           
+
               key={isHovered ? 'hover' : 'primary'}
               src={isHovered ? hoverImage : primaryImage}
               alt={name}
@@ -110,8 +121,8 @@ const ProductCard = ({ product }) => {
 
       {/* Content Section */}
       <div
-       
-      className="p-6 pt-2">
+
+        className="p-6 pt-2">
 
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
@@ -127,7 +138,7 @@ const ProductCard = ({ product }) => {
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Price</span>
             <span className="text-2xl font-black text-white tracking-tight">
-              {formatPrice(price, currency)}
+              {formatPrice(getPriceAmount(price), getPriceCurrency(price, currency))}
             </span>
           </div>
 

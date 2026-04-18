@@ -86,6 +86,9 @@ export async function getAllProductController(req, res, next) {
         if (!products) {
             throw new AppError("No products found", 404)
         }
+        console.log('====================================');
+        console.log(products);
+        console.log('====================================');
 
         res.status(200).json({
             products,
@@ -117,6 +120,9 @@ export async function getProductByIdController(req, res, next) {
         }
 
         const product = await getProductByIdService(id);
+        console.log('====================================');
+        console.log(product);
+        console.log('====================================');
         res.status(200).json({
             product,
             success: true,

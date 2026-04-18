@@ -1,6 +1,7 @@
 import { useDispatch } from "react-redux"
 import { addVearientProduct, createProduct, getAllProducts, getProduct, getProductById } from "../services/product.api"
 import { setError, setLoading, setProduct, setAllProducts } from "../state/product.slice"
+import { useCallback } from "react"
 
 export function UseProduct() {
     const dispatch = useDispatch()
@@ -9,6 +10,7 @@ export function UseProduct() {
         try {
             const data = await createProduct(productDetails)
             dispatch(setProduct(data.products))
+            return data.success
         } catch (error) {
             dispatch(setError(error.message))
         }
@@ -29,17 +31,17 @@ export function UseProduct() {
             dispatch(setLoading(false))
         }
     }
-    async function getAllProductHandeller() {
-        try {
-            dispatch(setLoading(true))
-            const data = await getAllProducts()
-            dispatch(setAllProducts(data.products))
-        } catch (error) {
-            dispatch(setError(error.message))
-        } finally {
-            dispatch(setLoading(false))
-        }
+    const getAllProductHandeller = useCallback(async () => {
+    try {
+        dispatch(setLoading(true));
+        const data = await getAllProducts();
+        dispatch(setAllProducts(data.products));
+    } catch (error) {
+        dispatch(setError(error.message));
+    } finally {
+        dispatch(setLoading(false));
     }
+}, [dispatch]);
 
     async function getProductByIdHandeller(productId) {
         dispatch(setLoading(true))

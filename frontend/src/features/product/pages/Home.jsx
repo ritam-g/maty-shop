@@ -13,8 +13,10 @@ function Home() {
 
   useEffect(() => {
     getAllProductHandeller();
-  }, []);
-
+  }, [getAllProductHandeller]);
+  console.log('====================================');
+  console.log(allProducts);
+  console.log('====================================');
   return (
     <div className="min-h-screen bg-slate-950 font-inter">
       {/* Background gradients */}

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const CreateProduct = () => {
     const { createProductHandeler } = UseProduct();
     const { isLoading, error } = useSelector((state) => state.product);
-   const navigate = useNavigate()
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -33,10 +33,10 @@ const CreateProduct = () => {
             alert("Maximum 5 images allowed");
             return;
         }
-        
+
         const newImages = [...images, ...files];
         setImages(newImages);
-        
+
         // Generate previews
         const newPreviews = files.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
@@ -46,7 +46,7 @@ const CreateProduct = () => {
         const newImages = [...images];
         newImages.splice(index, 1);
         setImages(newImages);
-        
+
         const newPreviews = [...imagePreviews];
         URL.revokeObjectURL(newPreviews[index]);
         newPreviews.splice(index, 1);
@@ -55,29 +55,34 @@ const CreateProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
+        console.log("FORM STATE:", formData);
+        console.log("IMAGES:", images);
+
         const data = new FormData();
+
         data.append('name', formData.name);
         data.append('description', formData.description);
         data.append('price', formData.price);
         data.append('currency', formData.currency);
         data.append('quantity', formData.quantity);
-        
+
         images.forEach(image => {
             data.append('images', image);
         });
 
-        await createProductHandeler(data);
-        
-        if (!error) {
-            setSuccessMessage(true);
-            setFormData({ name: '', description: '', price: '', currency: 'INR', quantity: '' });
-            setImages([]);
-            setImagePreviews([]);
-            navigate('/seller/dashboard')
-            setTimeout(() => setSuccessMessage(false), 3000);
+        console.log("FORMDATA:");
+        for (let [key, value] of data.entries()) {
+            console.log(key, value);
         }
-    };
+
+        const res = await createProductHandeler(data);
+        if (res) {
+            navigate('/seller/dashboard')
+            return
+        }
+        alert("something is wrong");
+    };;
 
     return (
         <div className="min-h-screen w-full bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-center font-inter">
@@ -87,7 +92,7 @@ const CreateProduct = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-violet-600/10 blur-[120px] rounded-full" />
             </div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -95,7 +100,7 @@ const CreateProduct = () => {
             >
                 <div className="mb-10 flex items-center gap-4 border-b border-white/5 pb-8">
                     <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                         <Package className="text-indigo-400" size={28} />
+                        <Package className="text-indigo-400" size={28} />
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-white tracking-tight">Create Listing</h1>
@@ -105,9 +110,9 @@ const CreateProduct = () => {
 
                 <AnimatePresence>
                     {error && (
-                        <motion.div 
-                            initial={{ opacity: 0, height: 0 }} 
-                            animate={{ opacity: 1, height: 'auto' }} 
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             className="bg-red-500/10 border border-red-500/20 text-red-500/80 p-4 rounded-xl text-center text-xs font-bold uppercase tracking-widest mb-8"
                         >
@@ -115,9 +120,9 @@ const CreateProduct = () => {
                         </motion.div>
                     )}
                     {successMessage && (
-                        <motion.div 
-                            initial={{ opacity: 0, height: 0 }} 
-                            animate={{ opacity: 1, height: 'auto' }} 
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-center flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest mb-8"
                         >
@@ -131,12 +136,12 @@ const CreateProduct = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Name Input */}
                         <div className="relative group md:col-span-2">
-                            <input 
-                                type="text" 
-                                name="name" 
-                                value={formData.name} 
-                                onChange={handleInputChange} 
-                                required 
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required
                                 placeholder=" "
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 pt-6 pb-2 text-white focus:outline-none focus:border-indigo-500/80 focus:bg-slate-800/50 transition-all peer"
                             />
@@ -147,11 +152,11 @@ const CreateProduct = () => {
 
                         {/* Description Input */}
                         <div className="relative group md:col-span-2">
-                            <textarea 
-                                name="description" 
-                                value={formData.description} 
-                                onChange={handleInputChange} 
-                                required 
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                required
                                 rows={4}
                                 placeholder=" "
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 pt-6 pb-2 text-white focus:outline-none focus:border-indigo-500/80 focus:bg-slate-800/50 transition-all peer resize-none"
@@ -163,12 +168,12 @@ const CreateProduct = () => {
 
                         {/* Price Input */}
                         <div className="relative group">
-                            <input 
-                                type="number" 
-                                name="price" 
-                                value={formData.price} 
-                                onChange={handleInputChange} 
-                                required 
+                            <input
+                                type="number"
+                                name="price"
+                                value={formData.price}
+                                onChange={handleInputChange}
+                                required
                                 placeholder=" "
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 pt-6 pb-2 text-white focus:outline-none focus:border-indigo-500/80 focus:bg-slate-800/50 transition-all peer"
                             />
@@ -200,12 +205,12 @@ const CreateProduct = () => {
 
                         {/* Quantity Input */}
                         <div className="relative group md:col-span-2">
-                            <input 
-                                type="number" 
-                                name="quantity" 
-                                value={formData.quantity} 
-                                onChange={handleInputChange} 
-                                required 
+                            <input
+                                type="number"
+                                name="quantity"
+                                value={formData.quantity}
+                                onChange={handleInputChange}
+                                required
                                 placeholder=" "
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 pt-6 pb-2 text-white focus:outline-none focus:border-indigo-500/80 focus:bg-slate-800/50 transition-all peer"
                             />
@@ -218,12 +223,12 @@ const CreateProduct = () => {
                     {/* Image Upload Area */}
                     <div className="space-y-4 pt-4 border-t border-white/5">
                         <label className="text-xs uppercase tracking-widest font-bold text-slate-400">Media Assets (Up to 5)</label>
-                        <div 
+                        <div
                             className={`w-full relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 ${isDragging ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]' : 'border-slate-700/50 bg-slate-900/30 hover:bg-slate-800/30 hover:border-slate-600'}`}
                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                             onDragLeave={() => setIsDragging(false)}
-                            onDrop={(e) => { 
-                                e.preventDefault(); 
+                            onDrop={(e) => {
+                                e.preventDefault();
                                 setIsDragging(false);
                                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                                     fileInputRef.current.files = e.dataTransfer.files;
@@ -231,11 +236,11 @@ const CreateProduct = () => {
                                 }
                             }}
                         >
-                            <input 
+                            <input
                                 ref={fileInputRef}
-                                type="file" 
-                                multiple 
-                                accept="image/jpeg, image/png, image/jpg" 
+                                type="file"
+                                multiple
+                                accept="image/jpeg, image/png, image/jpg"
                                 onChange={handleImageChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
@@ -253,7 +258,7 @@ const CreateProduct = () => {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-6">
                                 <AnimatePresence>
                                     {imagePreviews.map((preview, idx) => (
-                                        <motion.div 
+                                        <motion.div
                                             key={preview}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
@@ -262,7 +267,7 @@ const CreateProduct = () => {
                                         >
                                             <img src={preview} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                             <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                                <button 
+                                                <button
                                                     type="button"
                                                     onClick={() => removeImage(idx)}
                                                     className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white scale-75 group-hover:scale-100 transition-transform duration-300 shadow-xl"
@@ -281,13 +286,13 @@ const CreateProduct = () => {
                         <motion.button
                             whileHover={{ scale: 1.01, y: -2 }}
                             whileTap={{ scale: 0.98 }}
-                            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
+                            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                             type="submit"
                             disabled={isLoading}
                             className="w-full relative overflow-hidden py-4 px-8 rounded-xl font-bold tracking-widest uppercase transition-all duration-500 shadow-[0_12px_32px_-8px_rgba(99,102,241,0.5)] active:shadow-none bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 text-white disabled:grayscale disabled:opacity-50 text-sm group"
                         >
                             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                            <motion.div 
+                            <motion.div
                                 animate={{ x: ['100%', '-100%'] }}
                                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 pointer-events-none"

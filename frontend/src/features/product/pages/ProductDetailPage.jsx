@@ -8,13 +8,17 @@ import Navbar from '../components/layout/Navbar';
 import { UseProduct } from '../hooks/useProduct';
 import { getAllProducts } from '../services/product.api';
 
-const formatPrice = (amount, currencyCode = 'INR') => (
-  new Intl.NumberFormat('en-IN', {
+const formatPrice = (amount, currencyCode = 'INR') => {
+  const numValue = Number(amount);
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: currencyCode,
+    currency: currencyCode || 'INR',
     maximumFractionDigits: 0,
-  }).format(Number(amount || 0))
-);
+  }).format(isNaN(numValue) ? 0 : numValue);
+};
+
+const getPriceAmount = (p) => (p && typeof p === 'object' && p.amount !== undefined) ? p.amount : p;
+const getPriceCurrency = (p, defaultCurr) => (p && typeof p === 'object' && p.currency) ? p.currency : defaultCurr;
 
 const getStockMeta = (quantity = 0) => {
   if (quantity > 10) return { label: 'In Stock', variant: 'success' };
@@ -23,11 +27,12 @@ const getStockMeta = (quantity = 0) => {
   return { label: 'Out of Stock', variant: 'error' };
 };
 
-const getValidImages = (images) => (
-  Array.isArray(images)
-    ? images.filter((img) => typeof img === 'string' && !img.toLowerCase().endsWith('.pdf'))
-    : []
-);
+const getValidImages = (images) => {
+  if (!Array.isArray(images)) return [];
+  return images
+    .map(img => img?.url || (typeof img === 'string' ? img : null))
+    .filter(url => typeof url === 'string' && url.trim() !== '' && !url.toLowerCase().endsWith('.pdf'));
+};
 
 function ProductDetailPage() {
   const { id } = useParams();
@@ -213,13 +218,14 @@ function ProductDetailPage() {
                     {product.description || 'No description available'}
                   </p>
 
-                  <div className="mt-8 pt-6 border-t border-white/10">
-                    <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">Price</p>
-                    <p className="mt-1 text-4xl font-black text-white">
-                      {formatPrice(product.price, product.currency)}
-                    </p>
+                  <div className="mt-8 pt-6 border-t border-white/10 flex items-end justify-between">
+                     <div>
+                      <p className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Price</p>
+                      <p className="text-4xl font-black text-white tracking-tight">
+                        {formatPrice(getPriceAmount(product.price), getPriceCurrency(product.price, product.currency))}
+                      </p>
+                     </div>
                   </div>
-
                   <div className="mt-6">
                     <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">Stock</p>
                     <p className="mt-1 text-slate-200 font-semibold">{product.quantity ?? 0} available</p>
@@ -262,10 +268,10 @@ function ProductDetailPage() {
                               </div>
                             )}
                           </div>
-                          <div className="p-4">
-                            <h3 className="text-white font-bold line-clamp-1">{item?.name}</h3>
-                            <p className="text-indigo-300 mt-2 font-semibold text-sm">
-                              {formatPrice(item?.price, item?.currency)}
+                          <div className="p-6">
+                            <h3 className="text-white font-bold text-lg group-hover:text-indigo-400 transition-colors line-clamp-1">{item?.name}</h3>
+                            <p className="text-slate-400 mt-2 font-black text-xl tracking-tight">
+                              {formatPrice(getPriceAmount(item?.price), getPriceCurrency(item?.price, item?.currency))}
                             </p>
                           </div>
                         </button>
