@@ -19,7 +19,7 @@ import { AppError } from "../utils/AppError.js";
  * @throws {AppError} If validation fails or image upload fails
  */
 export async function createProductService(
-    { user, name, description, price, quantity, currency },
+    { user, name, description, price, quantity, currency, seller },
     { productImages }
 ) {
 
@@ -27,6 +27,8 @@ export async function createProductService(
     if (!name || !description || !price || !quantity || !productImages) {
         throw new AppError("All fields are required", 400);
     }
+    console.log('validation chekc ');
+
 
     // ✅ upload images to ImageKit
     const allImagesWithLink = await Promise.all(
@@ -37,10 +39,12 @@ export async function createProductService(
                 fileName: image.originalname || `image-${index}.jpg`,
                 folder: "products"
             });
+            console.log('iamge kit url ', response.url);
 
-            return response.url; // ✅ get URL after upload
+            return { url: response.url }; // ✅ get URL after upload
         })
     );
+    console.log('imges ', allImagesWithLink);
 
     // ✅ check upload success
     if (!allImagesWithLink || allImagesWithLink.length === 0) {
@@ -52,10 +56,14 @@ export async function createProductService(
         user,
         name,
         description,
-        price: Number(price),
+        price: {
+            amount: Number(price),
+            currency
+        },
         quantity: Number(quantity),
-        currency,
-        images: allImagesWithLink
+        title: name,
+        images: allImagesWithLink,
+        seller
     });
 
     return product;
@@ -70,10 +78,10 @@ export async function createProductService(
  */
 export async function getAllProductsService(id) {
 
-    const products = await productModel.find({ user: id });
+    const products = await productModel.find({ seller: id });
     if (products.length === 0) {
         throw new AppError("No products found", 404);
-       
+
     }
     return products;
 }
@@ -93,6 +101,54 @@ export async function getProductByIdService(id) {
 
     return product;
 }
+/**  
+ * @default plasea add req.file in the newVarents.images
+ */
+export async function updateProductVarent(productId, UserId, newVarents) {
 
+    if (!productId || !UserId) {
+        console.log(productId, UserId);
 
+        throw new AppError("All fields are required", 400)
+    }
+
+    const productDetails = await productModel.findOne({ _id: productId, seller: UserId })
+
+    if (!productDetails) {
+        throw new AppError("Product not found", 404)
+    }
+
+    // image will go to imagekite and give use url 
+    let images = []
+    if (newVarents.images.length <= 0) {
+        throw new AppError("All fields are required", 400)
+    }
+
+    for (const img of newVarents.images) {
+        const response = await client.files.upload({
+            file: img.buffer.toString("base64"),
+            fileName: img.originalname || `image-${Date.now()}.jpg`,
+            folder: "products/varents"
+        });
+
+        images.push({ url: response.url }); // ✅ real value
+    }
+
+    // ! debug the the images
+    // console.log('====================================');
+    // console.log(newVarents);
+    // console.log('====================================');
+    productDetails.variants.push({
+        images,
+        stock: newVarents.stock,
+        price: {
+            amount: Number(newVarents.price) || productDetails.price.amount,
+            currency: newVarents.currency || "INR"
+        },
+        attributes: JSON.parse(newVarents.attributes || "{}")
+
+    })
+    await productDetails.save()
+    return productDetails
+}
 

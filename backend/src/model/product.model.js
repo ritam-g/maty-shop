@@ -15,14 +15,9 @@ import mongoose from 'mongoose'
  * @property {Date} createdAt - Timestamp when the product was created (auto-generated)
  * @property {Date} updatedAt - Timestamp when the product was last updated (auto-generated)
  */
-const productSchema = new mongoose.Schema({
 
-    user: {
-        type: mongoose.Types.ObjectId,
-        ref: "user",
-        required: true
-    },
-    name: {
+const productSchema = new mongoose.Schema({
+    title: {
         type: String,
         required: true
     },
@@ -30,28 +25,63 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
+    },
     price: {
-        type: Number,
-        required: true
+        amount: {
+            type: Number,
+            required: true
+        },
+        currency: {
+            type: String,
+            enum: ["USD", "EUR", "GBP", "JPY", "INR"],
+            default: "INR"
+        }
     },
-    currency: {
-        type: String,
-        enum: ["INR", "USD", "EUR"],
-        required: true,
-        default: "INR"
-    },
-    images: {
-        type: [String],
-        required: true
-    },
-    quantity: {
-        type: Number,
-        required: true
-    }
+    images: [
+        {
+            url: {
+                type: String,
+                required: true
+            }
+        }
+    ],
+    variants: [
+        {
+            images: [
+                {
+                    url: {
+                        type: String,
+                        required: true
+                    }
+                }
+            ],
+            stock: {
+                type: Number,
+                default: 0
+            },
+            attributes: {
+                type: Map,
+                of: String
+            },
+            price: {
+                amount: {
+                    type: Number,
+                    required: true
+                },
+                currency: {
+                    type: String,
+                    enum: ["USD", "EUR", "GBP", "JPY", "INR"],
+                    default: "INR"
+                }
+            }
+        },
 
-}, {
-    timestamps: true // Automatically adds createdAt and updatedAt fields
-})
+    ]
+}, { timestamps: true })
 
 
 const productModel = mongoose.model("product", productSchema)

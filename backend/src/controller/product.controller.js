@@ -1,6 +1,6 @@
 import productModel from "../model/product.model.js";
 import mongoose from "mongoose";
-import { createProductService, getAllProductsService, getProductByIdService } from "../services/product.service.js"
+import { createProductService, getAllProductsService, getProductByIdService, updateProductVarent } from "../services/product.service.js"
 import { AppError } from "../utils/AppError.js";
 
 /**
@@ -24,7 +24,10 @@ export async function createProduct(req, res, next) {
         if (req.user.role !== 'seller') {
             throw new AppError("You are not a seller")
         }
-        const createdProduct = await createProductService({ user: req.user.id, name, description, price, quantity, currency }, { productImages })
+        console.log('====================================');
+        console.log('before the create product sevice ');
+        console.log('====================================');
+        const createdProduct = await createProductService({ user: req.user.id, name, description, price, quantity, currency, seller: req.user.id }, { productImages })
         res.status(201).json({
             product: createdProduct,
             success: true
@@ -47,9 +50,12 @@ export async function createProduct(req, res, next) {
  * @throws {Error} If product retrieval fails
  */
 export async function getUserProduct(req, res, next) {
-    const user = req.user
+    
+    const userId = req.user?.id || req.user?._id;
     try {
-        const products = await getAllProductsService(user.id)
+        console.log(userId);
+        
+        const products = await getAllProductsService(userId)
         console.log('====================================');
         console.log('getUserProduct route ');
         console.log('====================================');
@@ -75,16 +81,16 @@ export async function getUserProduct(req, res, next) {
  */
 export async function getAllProductController(req, res, next) {
     try {
-        const products=await productModel.find()
+        const products = await productModel.find()
 
-        if(!products){
-            throw new AppError("No products found",404)
+        if (!products) {
+            throw new AppError("No products found", 404)
         }
 
         res.status(200).json({
             products,
             success: true,
-            message:"All products fetched successfully"
+            message: "All products fetched successfully"
         })
     } catch (error) {
         console.log(error);
@@ -109,7 +115,7 @@ export async function getProductByIdController(req, res, next) {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new AppError("Invalid product ID", 400);
         }
-      
+
         const product = await getProductByIdService(id);
         res.status(200).json({
             product,
@@ -118,5 +124,26 @@ export async function getProductByIdController(req, res, next) {
         });
     } catch (error) {
         next(error);
+    }
+}
+
+
+
+export async function addProductVariant(req, res, next) {
+    try {
+        console.log(req.params.productId, req.user.id);
+        console.log(req.files);
+        
+        const images=[...req.files]
+        const updatedProduct = await updateProductVarent(req.params.productId, req.user.id,{...req.body, images})
+        return res.status(200).json({
+            updatedProduct,
+            success: true
+        })
+    } catch (error) {
+        console.log('====================================');
+        console.log(error);
+        console.log('====================================');
+        next(error)
     }
 }

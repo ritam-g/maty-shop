@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.middleware.js'
-import { createProduct, getAllProductController, getProductByIdController, getUserProduct } from '../controller/product.controller.js'
+import { addProductVariant, createProduct, getAllProductController, getProductByIdController, getUserProduct } from '../controller/product.controller.js'
 import { upload } from '../middleware/upload.middleware.js'
 
 /**
@@ -51,5 +51,7 @@ productRouter.get('/:id', getProductByIdController)
  * @access Public
  */
 productRouter.get('/',getAllProductController)
+
+productRouter.post('/:productId/variants',upload.array('images',5),authMiddleware,addProductVariant)
 
 export default productRouter
