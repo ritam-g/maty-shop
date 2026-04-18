@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux"
-import { createProduct, getAllProducts, getProduct, getProductById } from "../services/product.api"
+import { addVearientProduct, createProduct, getAllProducts, getProduct, getProductById } from "../services/product.api"
 import { setError, setLoading, setProduct, setAllProducts } from "../state/product.slice"
 
 export function UseProduct() {
@@ -56,5 +56,46 @@ export function UseProduct() {
             dispatch(setLoading(false))
         }
     }
-    return { createProductHandeler, getProductHandeler , getAllProductHandeller , getProductByIdHandeller}
+    async function updateProductVarientHandeler(data, productId) {
+
+        const formData = new FormData();
+
+        formData.append("title", data.name);
+        formData.append("name", data.name);
+        formData.append("price", data.price);
+        formData.append("stock", data.stock);
+        formData.append("currency", data.currency);
+
+        formData.append("attributes", JSON.stringify(data.attributes || {}));
+
+        if (data.images && data.images.length > 0) {
+            data.images.forEach((file) => {
+                formData.append("images", file);
+            });
+        }
+
+        try {
+            dispatch(setLoading(true));
+
+            const res = await addVearientProduct(formData, productId);
+
+            dispatch(setProduct(res.updatedProduct));
+
+            return res;
+
+        } catch (error) {
+            console.log(error);
+
+            const message =
+                error?.response?.data?.message || error.message;
+
+            dispatch(setError(message));
+
+            return null;
+
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+    return { createProductHandeler, getProductHandeler, getAllProductHandeller, getProductByIdHandeller, updateProductVarientHandeler }
 }

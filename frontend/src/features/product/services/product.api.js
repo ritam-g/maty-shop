@@ -17,11 +17,16 @@ export async function getProduct() {
 
 
 export async function getAllProducts() {
-    const response=await productApi.get('/')
+    const response = await productApi.get('/')
     return response.data
 }
 
 export async function getProductById(id) {
     const response = await productApi.get(`/${id}`)
     return response.data
+}
+export async function addVearientProduct(payload, productId) {
+    const response = await productApi.post(`/${productId}/variants`, payload)
+    return response.data
+
 }
