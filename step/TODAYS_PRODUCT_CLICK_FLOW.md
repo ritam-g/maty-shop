@@ -1,6 +1,7 @@
 # Today's Product Click -> Full Details Flow
 
 ## 1) Goal
+
 When user clicks a product card, app should:
 
 1. Navigate to `/product/:id`
@@ -12,18 +13,18 @@ When user clicks a product card, app should:
 
 ## 2) Where Each Thing Lives (File Map)
 
-| Layer | File | Main Responsibility |
-|---|---|---|
-| Frontend root router | `frontend/src/app/App.jsx` | Wraps app with `BrowserRouter` and renders route tree |
-| Frontend route tree | `frontend/src/routes/index.jsx` | Defines all routes, including `/product/:id` |
-| Route protection | `frontend/src/features/auth/components/Protected.jsx` | Auth check + optional role check |
-| Product click source | `frontend/src/features/product/components/product/ProductCard.jsx` | `useNavigate()` + `handleCardClick()` |
-| Product details UI + logic | `frontend/src/features/product/pages/ProductDetailPage.jsx` | `useParams()`, fetch, loading/error, rendering |
-| Product hook methods | `frontend/src/features/product/hooks/useProduct.js` | `getProductByIdHandeller(productId)` |
-| Product API client | `frontend/src/features/product/services/product.api.js` | `getProductById(id)` -> `GET /api/product/:id` |
-| Backend route | `backend/src/routes/product.route.js` | Maps `GET /api/product/:id` |
-| Backend controller | `backend/src/controller/product.controller.js` | `getProductByIdController()` |
-| Backend service | `backend/src/services/product.service.js` | `getProductByIdService()` DB lookup |
+| Layer                      | File                                                                 | Main Responsibility                                     |
+| -------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
+| Frontend root router       | `frontend/src/app/App.jsx`                                         | Wraps app with `BrowserRouter` and renders route tree |
+| Frontend route tree        | `frontend/src/routes/index.jsx`                                    | Defines all routes, including `/product/:id`          |
+| Route protection           | `frontend/src/features/auth/components/Protected.jsx`              | Auth check + optional role check                        |
+| Product click source       | `frontend/src/features/product/components/product/ProductCard.jsx` | `useNavigate()` + `handleCardClick()`               |
+| Product details UI + logic | `frontend/src/features/product/pages/ProductDetailPage.jsx`        | `useParams()`, fetch, loading/error, rendering        |
+| Product hook methods       | `frontend/src/features/product/hooks/useProduct.js`                | `getProductByIdHandeller(productId)`                  |
+| Product API client         | `frontend/src/features/product/services/product.api.js`            | `getProductById(id)` -> `GET /api/product/:id`      |
+| Backend route              | `backend/src/routes/product.route.js`                              | Maps `GET /api/product/:id`                           |
+| Backend controller         | `backend/src/controller/product.controller.js`                     | `getProductByIdController()`                          |
+| Backend service            | `backend/src/services/product.service.js`                          | `getProductByIdService()` DB lookup                   |
 
 ---
 
@@ -44,33 +45,38 @@ When user clicks a product card, app should:
 11. Backend controller validates ObjectId, service fetches from DB.
 12. Product response returns -> UI updates.
 13. Page shows:
-   - Main image + thumbnails
-   - Name, description, price
-   - Stock status badge
-   - Add to cart button
-   - Related products section
+
+- Main image + thumbnails
+- Name, description, price
+- Stock status badge
+- Add to cart button
+- Related products section
 
 ---
 
 ## 4) Method-Level Breakdown
 
 ## `ProductCard.jsx`
+
 - `handleCardClick()`: single source of route navigation.
 - `handleCardKeyDown()`: keyboard accessibility (`Enter` / `Space`).
 - Card root has `onClick={handleCardClick}` so click anywhere navigates.
 
 ## `routes/index.jsx`
+
 - Product details route:
   - `path="/product/:id"`
   - Renders only `<ProductDetailPage />` (inside `<Protected>`).
 
 ## `Protected.jsx`
+
 - If `loading`: waits.
 - If no user: redirects to `/login`.
 - If `allowedRoles` exists and role mismatch: redirects to `/`.
 - For `/product/:id`, no role restriction is passed, so any logged-in user can open details.
 
 ## `ProductDetailPage.jsx`
+
 - Uses `const { id } = useParams()` (must match `:id` from route).
 - Calls `getProductByIdHandeller(id)`.
 - Handles:
@@ -80,6 +86,7 @@ When user clicks a product card, app should:
 - Uses `retryCount` state to re-run fetch logic safely.
 
 ## `useProduct.js`
+
 - `getProductByIdHandeller(productId)`:
   - sets loading true
   - calls `getProductById(productId)`
@@ -87,11 +94,13 @@ When user clicks a product card, app should:
   - returns product
 
 ## `product.api.js`
+
 - `getProductById(id)`:
   - `GET /api/product/${id}`
   - returns backend JSON
 
 ## Backend
+
 - `product.route.js`: `productRouter.get('/:id', getProductByIdController)`
 - `product.controller.js`:
   - checks valid Mongo ObjectId
@@ -106,28 +115,28 @@ When user clicks a product card, app should:
 
 ```mermaid
 sequenceDiagram
-    actor U as User
+    actor User
     participant PC as ProductCard.jsx
     participant RT as React Router
     participant PD as ProductDetailPage.jsx
     participant HK as useProduct.js
     participant API as product.api.js
-    participant BE as backend /api/product/:id
+    participant BE as Backend
     participant DB as MongoDB
 
-    U->>PC: Click product card
-    PC->>RT: navigate('/product/:id')
+    User->>PC: Clicks on product card
+    PC->>RT: navigate to /product/:id
     RT->>PD: Render ProductDetailPage
-    PD->>PD: useParams() -> id
-    PD->>HK: getProductByIdHandeller(id)
+    PD->>PD: id = useParams().id
+    PD->>HK: getProductByIdHandler(id)
     HK->>API: getProductById(id)
     API->>BE: GET /api/product/:id
     BE->>DB: findById(id)
     DB-->>BE: product document
-    BE-->>API: { product, success }
-    API-->>HK: response
-    HK-->>PD: product
-    PD-->>U: Show full product details
+    BE-->>API: success response with product
+    API-->>HK: response.data
+    HK-->>PD: product data
+    PD-->>User: Display full product details
 ```
 
 ---
@@ -135,18 +144,28 @@ sequenceDiagram
 ## 6) Diagram (Component + API Flow)
 
 ```mermaid
-flowchart TD
-    A[ProductGrid / ProductCard] -->|click| B[navigate('/product/:id')]
-    B --> C[Route: /product/:id]
-    C --> D[Protected]
-    D --> E[ProductDetailPage]
-    E --> F[UseProduct.getProductByIdHandeller]
-    F --> G[product.api.getProductById]
-    G --> H[GET /api/product/:id]
-    H --> I[getProductByIdController]
-    I --> J[getProductByIdService]
-    J --> K[(MongoDB)]
-    K --> J --> I --> H --> G --> F --> E
+sequenceDiagram
+    participant User
+    participant PC as ProductCard.jsx
+    participant RT as ReactRouter
+    participant PD as ProductDetailPage.jsx
+    participant HK as useProduct.js
+    participant API as product.api.js
+    participant BE as Backend
+    participant DB as MongoDB
+
+    User->>PC: Click product
+    PC->>RT: navigate("/product/:id")
+    RT->>PD: Render page
+    PD->>HK: getProductByIdHandler(id)
+    HK->>API: getProductById(id)
+    API->>BE: GET /api/product/:id
+    BE->>DB: findById(id)
+    DB-->>BE: product
+    BE-->>API: response
+    API-->>HK: data
+    HK-->>PD: product
+    PD-->>User: Show details
 ```
 
 ---
