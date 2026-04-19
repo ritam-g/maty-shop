@@ -7,6 +7,10 @@ import Container from '../components/layout/Container';
 import Navbar from '../components/layout/Navbar';
 import { UseProduct } from '../hooks/useProduct';
 import { getAllProducts } from '../services/product.api';
+import {
+  getProductImagesWithFallback,
+  handleProductImageError,
+} from '../utils/image.utils';
 
 const formatPrice = (amount, currencyCode = 'INR') => {
   const numValue = Number(amount);
@@ -25,13 +29,6 @@ const getStockMeta = (quantity = 0) => {
   if (quantity > 0 && quantity < 5) return { label: 'Only Few Left', variant: 'warning' };
   if (quantity > 0) return { label: 'In Stock', variant: 'info' };
   return { label: 'Out of Stock', variant: 'error' };
-};
-
-const getValidImages = (images) => {
-  if (!Array.isArray(images)) return [];
-  return images
-    .map(img => img?.url || (typeof img === 'string' ? img : null))
-    .filter(url => typeof url === 'string' && url.trim() !== '' && !url.toLowerCase().endsWith('.pdf'));
 };
 
 function ProductDetailPage() {
@@ -103,8 +100,12 @@ function ProductDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, retryCount]);
 
-  const validImages = useMemo(() => getValidImages(product?.images), [product?.images]);
+  const validImages = useMemo(
+    () => getProductImagesWithFallback(product?.images),
+    [product?.images],
+  );
   const stockMeta = useMemo(() => getStockMeta(product?.quantity), [product?.quantity]);
+  const productTitle = product?.title || product?.name || 'Untitled Product';
 
   useEffect(() => {
     setActiveImage(validImages[0] || '');
@@ -174,7 +175,12 @@ function ProductDetailPage() {
                 <div className="space-y-4">
                   <div className="aspect-square rounded-[2rem] overflow-hidden bg-slate-900/70 border border-white/10">
                     {activeImage ? (
-                      <img src={activeImage} alt={product.name} className="w-full h-full object-cover" />
+                      <img
+                        src={activeImage}
+                        alt={productTitle}
+                        className="w-full h-full object-cover"
+                        onError={handleProductImageError}
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500 font-semibold">
                         No image available
@@ -199,7 +205,12 @@ function ProductDetailPage() {
                                 : 'border-white/10 hover:border-indigo-400/70'
                             }`}
                           >
-                            <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                            <img
+                              src={image}
+                              alt={`${productTitle} ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={handleProductImageError}
+                            />
                           </button>
                         );
                       })}
@@ -211,7 +222,7 @@ function ProductDetailPage() {
                   <Badge variant={stockMeta.variant}>{stockMeta.label}</Badge>
 
                   <h1 className="mt-4 text-3xl md:text-4xl font-black text-white tracking-tight">
-                    {product.name}
+                    {productTitle}
                   </h1>
 
                   <p className="mt-5 text-slate-300 leading-relaxed">
@@ -250,7 +261,8 @@ function ProductDetailPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {relatedProducts.map((item) => {
                       const relatedId = item?._id || item?.id;
-                      const relatedImage = getValidImages(item?.images)[0];
+                      const relatedImage = getProductImagesWithFallback(item?.images)[0];
+                      const relatedTitle = item?.title || item?.name || 'Untitled Product';
 
                       return (
                         <button
@@ -261,7 +273,12 @@ function ProductDetailPage() {
                         >
                           <div className="aspect-[4/3] bg-slate-900">
                             {relatedImage ? (
-                              <img src={relatedImage} alt={item?.name} className="w-full h-full object-cover" />
+                              <img
+                                src={relatedImage}
+                                alt={relatedTitle}
+                                className="w-full h-full object-cover"
+                                onError={handleProductImageError}
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-slate-500">
                                 No image
@@ -269,7 +286,7 @@ function ProductDetailPage() {
                             )}
                           </div>
                           <div className="p-6">
-                            <h3 className="text-white font-bold text-lg group-hover:text-indigo-400 transition-colors line-clamp-1">{item?.name}</h3>
+                            <h3 className="text-white font-bold text-lg group-hover:text-indigo-400 transition-colors line-clamp-1">{relatedTitle}</h3>
                             <p className="text-slate-400 mt-2 font-black text-xl tracking-tight">
                               {formatPrice(getPriceAmount(item?.price), getPriceCurrency(item?.price, item?.currency))}
                             </p>

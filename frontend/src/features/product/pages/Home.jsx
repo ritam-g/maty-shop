@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { UseProduct } from '../hooks/useProduct';
@@ -10,13 +10,16 @@ import Button from '../components/ui/Button';
 function Home() {
   const { allProducts, isLoading, error } = useSelector((state) => state.product);
   const { getAllProductHandeller } = UseProduct();
+  const products = useMemo(() => (Array.isArray(allProducts) ? allProducts : []), [allProducts]);
+
+  const handleRetry = useCallback(() => {
+    getAllProductHandeller({ force: true });
+  }, [getAllProductHandeller]);
 
   useEffect(() => {
     getAllProductHandeller();
   }, [getAllProductHandeller]);
-  console.log('====================================');
-  console.log(allProducts);
-  console.log('====================================');
+
   return (
     <div className="min-h-screen bg-slate-950 font-inter">
       {/* Background gradients */}
@@ -101,16 +104,16 @@ function Home() {
             {error ? (
               <div className="glass-dark p-12 rounded-[2.5rem] border border-red-500/20 text-center">
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl text-red-500">⚠️</span>
+                  <span className="text-2xl text-red-500">!</span>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Something went wrong</h3>
                 <p className="text-slate-400 mb-8 max-w-md mx-auto">{error}</p>
-                <Button onClick={() => getAllProductHandeller()} variant="outline">
+                <Button onClick={handleRetry} variant="outline">
                   Try Again
                 </Button>
               </div>
             ) : (
-              <ProductGrid products={allProducts} isLoading={isLoading} />
+              <ProductGrid products={products} isLoading={isLoading} />
             )}
           </Container>
         </section>
@@ -127,7 +130,7 @@ function Home() {
                 <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
                 <a href="#" className="hover:text-white transition-colors">Contact</a>
               </div>
-              <p className="text-xs text-slate-600 font-medium">© 2024 MATYSHOP INC. ALL RIGHTS RESERVED.</p>
+              <p className="text-xs text-slate-600 font-medium">(c) 2024 MATYSHOP INC. ALL RIGHTS RESERVED.</p>
             </div>
           </Container>
         </footer>
@@ -137,3 +140,4 @@ function Home() {
 }
 
 export default Home;
+

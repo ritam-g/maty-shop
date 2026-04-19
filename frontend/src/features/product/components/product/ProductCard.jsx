@@ -1,15 +1,65 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { memo, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
+import {
+  getProductImagesWithFallback,
+  handleProductImageError,
+} from '../../utils/image.utils';
 
-const ProductCard = ({ product }) => {
-  const { name, description, price, currency, images, quantity } = product;
+const CARD_ENTRY_TRANSITION = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
+const IMAGE_SWAP_TRANSITION = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
+
+const getPriceAmount = (priceValue) => (
+  priceValue && typeof priceValue === 'object' && priceValue.amount !== undefined
+    ? priceValue.amount
+    : priceValue
+);
+
+const getPriceCurrency = (priceValue, defaultCurrency) => (
+  priceValue && typeof priceValue === 'object' && priceValue.currency
+    ? priceValue.currency
+    : defaultCurrency
+);
+
+const formatPrice = (amount, currencyCode) => {
+  const numValue = Number(amount);
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: currencyCode || 'INR',
+    maximumFractionDigits: 0,
+  }).format(Number.isNaN(numValue) ? 0 : numValue);
+};
+
+const renderStockStatus = (quantity) => {
+  if (quantity > 10) return <Badge variant="success">In Stock</Badge>;
+  if (quantity > 0 && quantity < 5) return <Badge variant="warning">Only few left</Badge>;
+  if (quantity > 0) return <Badge variant="info">In Stock</Badge>;
+  return <Badge variant="error">Out of Stock</Badge>;
+};
+
+function ProductCardComponent({ product }) {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+
   const productId = product?._id || product?.id;
+  const productTitle = product?.title || product?.name || 'Untitled Product';
+  const description = product?.description || 'No description available';
+  const quantity = Number(product?.quantity ?? 0);
+  const priceAmount = getPriceAmount(product?.price);
+  const priceCurrency = getPriceCurrency(product?.price, product?.currency);
+
+  const imageSet = useMemo(
+    () => getProductImagesWithFallback(product?.images),
+    [product?.images],
+  );
+
+  const primaryImage = imageSet[0];
+  const hoverImage = imageSet[1] || imageSet[0];
+  const hasSecondaryImage = hoverImage !== primaryImage;
+  const shouldShowHoverImage = isHovered && hasSecondaryImage;
 
   const handleCardClick = () => {
     if (!productId) return;
@@ -23,44 +73,12 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  // Filter out PDFs and get valid images
-  console.log("PRODUCT:", product);
-  console.log("IMAGES:", product?.images);
-  const validImages = Array.isArray(images) 
-    ? images
-        .map(img => img?.url || (typeof img === 'string' ? img : null))
-        .filter(url => typeof url === 'string' && url.trim() !== '' && !url.toLowerCase().endsWith('.pdf'))
-    : [];
-    
-  const primaryImage = validImages.length > 0 ? validImages[0] : null;
-  const hoverImage = validImages.length > 1 ? validImages[1] : primaryImage;
- 
-  const getPriceAmount = (p) => (p && typeof p === 'object' && p.amount !== undefined) ? p.amount : p;
-  const getPriceCurrency = (p, defaultCurr) => (p && typeof p === 'object' && p.currency) ? p.currency : defaultCurr;
-
-  const formatPrice = (amount, curr) => {
-    const numValue = Number(amount);
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: curr || 'INR',
-      maximumFractionDigits: 0,
-    }).format(isNaN(numValue) ? 0 : numValue);
-  };
-
-  const stockStatus = () => {
-    if (quantity > 10) return <Badge variant="success">In Stock</Badge>;
-    if (quantity < 5 && quantity > 0) return <Badge variant="warning">Only few left</Badge>;
-    if (quantity <= 10 && quantity >= 5) return <Badge variant="info">In Stock</Badge>;
-    return <Badge variant="error">Out of Stock</Badge>;
-  };
-
-
   return (
     <motion.div
-
-      layout
+      layout="position"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={CARD_ENTRY_TRANSITION}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={handleCardClick}
@@ -91,42 +109,40 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Image Section */}
-      <div
+      <div className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
+        <motion.img
+          src={primaryImage}
+          alt={productTitle}
+          initial={false}
+          animate={{ opacity: shouldShowHoverImage ? 0 : 1, scale: shouldShowHoverImage ? 1.04 : 1 }}
+          transition={IMAGE_SWAP_TRANSITION}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={handleProductImageError}
+        />
 
-        className="relative aspect-square overflow-hidden m-3 rounded-[1.5rem]">
-        {primaryImage ? (
-          <AnimatePresence mode="wait">
-            <motion.img
-
-              key={isHovered ? 'hover' : 'primary'}
-              src={isHovered ? hoverImage : primaryImage}
-              alt={name}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: isHovered ? 1.1 : 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full h-full object-cover"
-            />
-          </AnimatePresence>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-            <span className="text-slate-500 font-medium">No Image</span>
-          </div>
+        {hasSecondaryImage && (
+          <motion.img
+            src={hoverImage}
+            alt={`${productTitle} alternate view`}
+            initial={false}
+            animate={{ opacity: shouldShowHoverImage ? 1 : 0, scale: shouldShowHoverImage ? 1.1 : 1.04 }}
+            transition={IMAGE_SWAP_TRANSITION}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={handleProductImageError}
+            aria-hidden
+          />
         )}
 
         <div className="absolute bottom-4 left-4 z-10">
-          {stockStatus()}
+          {renderStockStatus(quantity)}
         </div>
       </div>
 
       {/* Content Section */}
-      <div
-
-        className="p-6 pt-2">
-
+      <div className="p-6 pt-2">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
-            {name}
+            {productTitle}
           </h3>
         </div>
 
@@ -138,7 +154,7 @@ const ProductCard = ({ product }) => {
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Price</span>
             <span className="text-2xl font-black text-white tracking-tight">
-              {formatPrice(getPriceAmount(price), getPriceCurrency(price, currency))}
+              {formatPrice(priceAmount, priceCurrency)}
             </span>
           </div>
 
@@ -153,6 +169,8 @@ const ProductCard = ({ product }) => {
       </div>
     </motion.div>
   );
-};
+}
+
+const ProductCard = memo(ProductCardComponent);
 
 export default ProductCard;
