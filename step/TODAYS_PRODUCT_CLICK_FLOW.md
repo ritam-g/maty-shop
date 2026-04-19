@@ -115,36 +115,6 @@ When user clicks a product card, app should:
 
 ```mermaid
 sequenceDiagram
-    actor User
-    participant PC as ProductCard.jsx
-    participant RT as React Router
-    participant PD as ProductDetailPage.jsx
-    participant HK as useProduct.js
-    participant API as product.api.js
-    participant BE as Backend
-    participant DB as MongoDB
-
-    User->>PC: Clicks on product card
-    PC->>RT: navigate to /product/:id
-    RT->>PD: Render ProductDetailPage
-    PD->>PD: id = useParams().id
-    PD->>HK: getProductByIdHandler(id)
-    HK->>API: getProductById(id)
-    API->>BE: GET /api/product/:id
-    BE->>DB: findById(id)
-    DB-->>BE: product document
-    BE-->>API: success response with product
-    API-->>HK: response.data
-    HK-->>PD: product data
-    PD-->>User: Display full product details
-```
-
----
-
-## 6) Diagram (Component + API Flow)
-
-```mermaid
-sequenceDiagram
     participant User
     participant PC as ProductCard.jsx
     participant RT as ReactRouter
@@ -166,6 +136,47 @@ sequenceDiagram
     API-->>HK: data
     HK-->>PD: product
     PD-->>User: Show details
+```
+
+---
+
+## 6) Diagram (Component + API Flow)
+
+```mermaid
+flowchart TD
+    subgraph Frontend["Frontend Layer"]
+        A[ProductGrid / ProductCard]
+        B[navigate to /product/:id]
+        C[Route: /product/:id]
+        D[Protected Component]
+        E[ProductDetailPage]
+        F[UseProduct.getProductByIdHandeller]
+        G[product.api.getProductById]
+    end
+  
+    subgraph Backend["Backend and Database"]
+        H["GET /api/product/:id"]
+        I[getProductByIdController]
+        J[getProductByIdService]
+        K[(MongoDB)]
+    end
+  
+    A -->|click| B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K -->|product data| J
+    J -->|product data| I
+    I -->|response| H
+    H -->|response| G
+    G -->|data| F
+    F -->|product| E
 ```
 
 ---
