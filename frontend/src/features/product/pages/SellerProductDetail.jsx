@@ -80,7 +80,7 @@ const SellerProductDetail = () => {
             <VariantSelector 
                variants={currentProduct?.variants} 
                selectedVariantId={selectedVariant?._id}
-               onSelect={setSelectedVariant}
+               onSelect={(variant) => setSelectedVariant(prev => prev?._id === variant._id ? null : variant)}
             />
           </div>
 
