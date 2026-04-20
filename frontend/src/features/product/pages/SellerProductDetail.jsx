@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
 import Container from '../components/layout/Container';
-import ProductHeader from '../components/ProductHeader';
-import VariantList from '../components/VariantList';
+import ProductPreview from '../components/ProductPreview';
+import VariantSelector from '../components/VariantSelector';
 import VariantForm from '../components/VariantForm';
 import { UseProduct } from '../hooks/useProduct';
-import { motion } from 'framer-motion';
 
 const SellerProductDetail = () => {
   const { productId } = useParams();
@@ -15,26 +15,19 @@ const SellerProductDetail = () => {
   
   const [selectedVariant, setSelectedVariant] = useState(null);
   
+  // Default focus is null to show base product details initially
   useEffect(() => {
     if (productId) {
       getProductByIdHandeller(productId);
     }
   }, [productId, getProductByIdHandeller]);
 
-  // Handle setting initial selected variant
-  useEffect(() => {
-    const currentProduct = Array.isArray(product) ? product.find(p => p._id === productId) : product;
-    if (currentProduct?.variants?.length > 0 && !selectedVariant) {
-      setSelectedVariant(currentProduct.variants[0]);
-    }
-  }, [product, productId, selectedVariant]);
-
   if (isLoading && !product) {
     return (
-      <div className="min-h-screen bg-[#060e20] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0b1326] flex items-center justify-center">
         <div className="space-y-4 text-center">
-          <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-400 font-medium animate-pulse">Loading Product Architecture...</p>
+          <div className="w-12 h-12 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mx-auto" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 animate-pulse">Syncing Inventory...</p>
         </div>
       </div>
     );
@@ -42,11 +35,10 @@ const SellerProductDetail = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#060e20] flex items-center justify-center p-4">
-        <div className="bg-rose-500/10 border border-rose-500/20 p-8 rounded-3xl max-w-md text-center space-y-4">
-          <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto text-rose-500 text-3xl font-bold">!</div>
-          <h2 className="text-2xl font-bold text-white">System Error</h2>
-          <p className="text-slate-400">{error}</p>
+      <div className="min-h-screen bg-[#0b1326] flex items-center justify-center p-4">
+        <div className="bg-rose-500/10 border border-white/5 p-8 rounded-[2rem] max-w-sm text-center space-y-4">
+          <h2 className="text-xl font-bold text-white tracking-tight">System Outage</h2>
+          <p className="text-slate-500 text-sm">{error}</p>
         </div>
       </div>
     );
@@ -55,7 +47,7 @@ const SellerProductDetail = () => {
   const currentProduct = Array.isArray(product) ? product.find(p => p._id === productId) : product;
 
   // Derive display data based on selection
-  const displayProduct = {
+  const displayProductView = {
     ...currentProduct,
     images: selectedVariant ? selectedVariant.images : currentProduct?.images,
     price: selectedVariant ? selectedVariant.price : currentProduct?.price,
@@ -64,49 +56,48 @@ const SellerProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1326] text-slate-200 py-12 selection:bg-indigo-500/30 font-inter relative overflow-hidden">
-      <Container className="space-y-12 relative z-10">
+    <div className="min-h-screen bg-[#0b1326] text-slate-200 py-12 selection:bg-indigo-500/30 relative">
+      <Container>
         {/* Navigation Breadcrumb */}
         <motion.nav 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600"
+          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 mb-10"
         >
           <span>Inventory Hub</span>
           <span className="text-slate-800">/</span>
-          <span>Management</span>
+          <span>Redesign Control</span>
           <span className="text-slate-800">/</span>
           <span className="text-indigo-400">{currentProduct?.name || 'Architectural Detail'}</span>
         </motion.nav>
 
-        {/* Top Product Header */}
-        <ProductHeader product={displayProduct} />
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Left: Variants Listing (Col 7) */}
-          <div className="lg:col-span-7 space-y-12">
-             <VariantList 
+        {/* redesigned 70/30 Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 items-start">
+          
+          {/* Main Content (70%) */}
+          <div className="lg:col-span-7 space-y-10">
+            <ProductPreview product={displayProductView} />
+            <VariantSelector 
                variants={currentProduct?.variants} 
                selectedVariantId={selectedVariant?._id}
                onSelect={setSelectedVariant}
-             />
+            />
           </div>
 
-          {/* Right: Add Variant Form (Col 5) */}
-          <div className="lg:col-span-5 h-fit lg:sticky lg:top-8">
-            <VariantForm 
-              productId={productId} 
-              onVariantAdded={() => getProductByIdHandeller(productId)}
-            />
+          {/* Sticky Panel (30%) */}
+          <div className="lg:col-span-3">
+             <VariantForm 
+                productId={productId} 
+                onVariantAdded={() => getProductByIdHandeller(productId)}
+             />
           </div>
         </div>
       </Container>
       
-      {/* Premium Ambient Architecture */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-        <div className="absolute top-[-15%] left-[-5%] w-[50%] h-[50%] bg-indigo-600/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
+      {/* Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-indigo-500/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-indigo-500/5 blur-[100px] rounded-full" />
       </div>
     </div>
   );
