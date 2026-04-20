@@ -142,6 +142,9 @@ export async function addProductVariant(req, res, next) {
         
         const images=[...req.files]
         const updatedProduct = await updateProductVarent(req.params.productId, req.user.id,{...req.body, images})
+        console.log('====================================');
+        console.log('new varient created ');
+        console.log('====================================');
         return res.status(200).json({
             updatedProduct,
             success: true

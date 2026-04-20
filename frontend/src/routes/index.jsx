@@ -7,6 +7,7 @@ import Home from '../features/product/pages/Home';
 import CreateProduct from '../features/product/pages/CreateProduct';
 import DashBoard from '../features/product/pages/DashBoard';
 import ProductDetailPage from '../features/product/pages/ProductDetailPage';
+import SellerProductDetail from '../features/product/pages/SellerProductDetail';
 
 export function AppRoutes() {
   return (
@@ -37,6 +38,15 @@ export function AppRoutes() {
         element={(
           <Protected allowedRoles={['seller']}>
             <DashBoard />
+          </Protected>
+        )}
+      />
+
+      <Route
+        path="/seller/product/:productId"
+        element={(
+          <Protected allowedRoles={['seller']}>
+            <SellerProductDetail />
           </Protected>
         )}
       />

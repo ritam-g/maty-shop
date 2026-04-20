@@ -104,7 +104,8 @@ const DashBoard = () => {
               const productKey = item?._id || item?.id || `${productTitle}-${index}`;
 
               return (
-                <div
+                <Link
+                  to={`/seller/product/${item._id}`}
                   key={productKey}
                   className="group relative bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-2xl overflow-hidden hover:bg-slate-800/40 hover:border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(99,102,241,0.2)] flex flex-col cursor-pointer"
                 >
@@ -178,7 +179,7 @@ const DashBoard = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })
           )}
