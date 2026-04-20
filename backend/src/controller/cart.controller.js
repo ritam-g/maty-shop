@@ -49,7 +49,7 @@ export async function addToCartController(req, res, next) {
                 throw new AppError("Out of stock", 400)
             }
 
-            await cartModel.updateOne(
+          const updatedCart =  await cartModel.updateOne(
                 {
                     user: req.user.id,
                     "items.product": productId,
@@ -62,7 +62,8 @@ export async function addToCartController(req, res, next) {
 
             return res.status(200).json({
                 message: "Cart updated successfully",
-                success: true
+                success: true,
+                updatedCart
             })
         }
 
@@ -78,7 +79,8 @@ export async function addToCartController(req, res, next) {
 
         return res.status(200).json({
             message: "Product added to cart successfully",
-            success: true
+            success: true,
+            cart
         })
 
     } catch (error) {
