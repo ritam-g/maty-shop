@@ -1,0 +1,250 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion as Motion } from "framer-motion";
+import { ArrowRight, ShoppingBag } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Container from "../../product/components/layout/Container";
+import Navbar from "../../product/components/layout/Navbar";
+import CartItemCard from "../components/CartItemCard";
+import CartSummary from "../components/CartSummary";
+import { useCart } from "../hooks/useCart";
+import { removeItem, restoreItems, setItemQuantity } from "../state/cart.slice.js";
+import {
+  getCartItemKey,
+  getCartTotals,
+  getProductIdFromItem,
+  getVariantIdFromItem,
+  getVariantStock,
+  normalizeCartItems,
+} from "../utils/cart.utils.js";
+
+function Toast({ toast }) {
+  if (!toast) return null;
+  const palette = toast.type === "error"
+    ? "border-rose-400/30 bg-rose-500/20 text-rose-100"
+    : "border-emerald-400/30 bg-emerald-500/20 text-emerald-100";
+
+  return (
+    <Motion.div
+      initial={{ opacity: 0, y: -12, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.96 }}
+      className={`fixed top-6 right-6 z-[70] px-4 py-3 rounded-2xl border backdrop-blur-xl font-semibold text-sm shadow-2xl ${palette}`}
+    >
+      {toast.message}
+    </Motion.div>
+  );
+}
+
+function CartLoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_24rem] gap-6 lg:gap-8 animate-pulse">
+      <section className="space-y-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="rounded-3xl border border-white/10 bg-slate-900/60 p-6">
+            <div className="flex gap-4">
+              <div className="w-28 aspect-square rounded-2xl bg-white/10" />
+              <div className="flex-1 space-y-3">
+                <div className="h-5 w-1/2 bg-white/10 rounded" />
+                <div className="h-4 w-1/3 bg-white/10 rounded" />
+                <div className="h-10 w-44 bg-white/10 rounded-2xl mt-5" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <aside className="h-fit">
+        <CartSummary isLoading />
+      </aside>
+    </div>
+  );
+}
+
+function EmptyCartState({ onStartShopping }) {
+  return (
+    <Motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-[2rem] border border-white/10 bg-slate-900/60 backdrop-blur-xl p-8 md:p-12 text-center"
+    >
+      <Motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="mx-auto w-28 h-28 rounded-[2rem] bg-gradient-to-br from-indigo-500/20 to-slate-800 border border-indigo-300/20 flex items-center justify-center shadow-[0_20px_60px_rgba(79,70,229,0.25)]"
+      >
+        <ShoppingBag size={36} className="text-indigo-200" />
+      </Motion.div>
+
+      <h2 className="mt-6 text-3xl font-black tracking-tight text-white">Your cart is empty</h2>
+      <p className="mt-3 text-slate-400 max-w-lg mx-auto">
+        Looks like you have not added anything yet. Explore the collection and find something worth owning.
+      </p>
+
+      <Motion.button
+        whileHover={{ y: -2, scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
+        type="button"
+        onClick={onStartShopping}
+        className="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold uppercase tracking-wider text-xs shadow-[0_10px_30px_rgba(79,70,229,0.4)]"
+      >
+        Start Shopping
+        <ArrowRight size={16} />
+      </Motion.button>
+    </Motion.section>
+  );
+}
+
+function Cart() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { handleAddToCart, handleGetCart } = useCart();
+  const { items, isLoading, error } = useSelector((state) => state.cart);
+
+  const [pendingMap, setPendingMap] = useState({});
+  const [toast, setToast] = useState(null);
+
+  const cartItems = useMemo(() => normalizeCartItems(items), [items]);
+  const totals = useMemo(() => getCartTotals(cartItems), [cartItems]);
+  const displayCurrency = useMemo(() => {
+    const first = cartItems[0];
+    const fromProduct = first?.product?.currency;
+    const fromItem = first?.price?.currency;
+    return fromProduct || fromItem || "INR";
+  }, [cartItems]);
+
+  useEffect(() => {
+    handleGetCart().catch(() => {});
+  }, [handleGetCart]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(() => setToast(null), 2400);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const setPending = useCallback((key, value) => {
+    setPendingMap((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const showToast = useCallback((type, message) => {
+    setToast({ id: Date.now(), type, message });
+  }, []);
+
+  const handleIncrease = useCallback(async (item) => {
+    const key = getCartItemKey(item);
+    if (!key || pendingMap[key]) return;
+
+    const productId = getProductIdFromItem(item);
+    const variantId = getVariantIdFromItem(item);
+    const stockLimit = getVariantStock(item?.product, variantId);
+    const currentQty = Math.max(1, Number(item?.quantity || 1));
+
+    if (!productId || !variantId) {
+      showToast("error", "Variant is missing for this item.");
+      return;
+    }
+
+    if (Number.isFinite(stockLimit) && currentQty >= stockLimit) {
+      showToast("error", "Cannot add beyond available stock.");
+      return;
+    }
+
+    const snapshot = cartItems.map((entry) => ({ ...entry }));
+    dispatch(setItemQuantity({ key, quantity: currentQty + 1 }));
+    setPending(key, true);
+
+    try {
+      await handleAddToCart({ productId, variantId, quantity: 1 });
+    } catch (requestError) {
+      dispatch(restoreItems(snapshot));
+      showToast("error", requestError?.response?.data?.message || "Unable to update quantity.");
+    } finally {
+      setPending(key, false);
+    }
+  }, [cartItems, dispatch, handleAddToCart, pendingMap, setPending, showToast]);
+
+  const handleDecrease = useCallback((item) => {
+    const key = getCartItemKey(item);
+    const currentQty = Math.max(1, Number(item?.quantity || 1));
+    if (currentQty <= 1) return;
+    dispatch(setItemQuantity({ key, quantity: currentQty - 1 }));
+  }, [dispatch]);
+
+  const handleRemove = useCallback((item) => {
+    const key = getCartItemKey(item);
+    dispatch(removeItem({ key }));
+    showToast("success", "Item removed from cart.");
+  }, [dispatch, showToast]);
+
+  const handleCheckout = useCallback(() => {
+    showToast("success", "Checkout integration is ready for your payment step.");
+  }, [showToast]);
+
+  return (
+    <div className="min-h-screen bg-slate-950">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-12%] right-[-10%] h-[44rem] w-[44rem] rounded-full bg-indigo-600/10 blur-[150px]" />
+        <div className="absolute bottom-[-18%] left-[-12%] h-[44rem] w-[44rem] rounded-full bg-cyan-500/10 blur-[150px]" />
+      </div>
+
+      <Navbar />
+
+      <AnimatePresence>
+        <Toast key={toast?.id} toast={toast} />
+      </AnimatePresence>
+
+      <main className="relative pt-28 pb-20">
+        <Container>
+          <header className="mb-8 md:mb-10">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white">Your Cart</h1>
+            <p className="mt-2 text-slate-400">Review your selections and complete checkout seamlessly.</p>
+          </header>
+
+          {isLoading && cartItems.length === 0 && <CartLoadingSkeleton />}
+
+          {!isLoading && cartItems.length === 0 && (
+            <EmptyCartState onStartShopping={() => navigate("/")} />
+          )}
+
+          {cartItems.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_24rem] gap-6 lg:gap-8 items-start">
+              <section className="space-y-4">
+                <AnimatePresence initial={false}>
+                  {cartItems.map((item) => (
+                    <CartItemCard
+                      key={getCartItemKey(item)}
+                      item={item}
+                      isPending={Boolean(pendingMap[getCartItemKey(item)])}
+                      onIncrease={handleIncrease}
+                      onDecrease={handleDecrease}
+                      onRemove={handleRemove}
+                    />
+                  ))}
+                </AnimatePresence>
+              </section>
+
+              <div className="lg:sticky lg:top-28">
+                <CartSummary
+                  totals={totals}
+                  currency={displayCurrency}
+                  isLoading={isLoading}
+                  onCheckout={handleCheckout}
+                />
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-6 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+              {error}
+            </div>
+          )}
+        </Container>
+      </main>
+    </div>
+  );
+}
+
+export default Cart;

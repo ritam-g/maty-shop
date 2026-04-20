@@ -8,6 +8,7 @@ import CreateProduct from '../features/product/pages/CreateProduct';
 import DashBoard from '../features/product/pages/DashBoard';
 import ProductDetailPage from '../features/product/pages/ProductDetailPage';
 import SellerProductDetail from '../features/product/pages/SellerProductDetail';
+import Cart from '../features/cart/pages/Cart';
 
 export function AppRoutes() {
   return (
@@ -56,6 +57,15 @@ export function AppRoutes() {
         element={(
           <Protected>
             <ProductDetailPage />
+          </Protected>
+        )}
+      />
+
+      <Route
+        path="/cart"
+        element={(
+          <Protected>
+            <Cart />
           </Protected>
         )}
       />
