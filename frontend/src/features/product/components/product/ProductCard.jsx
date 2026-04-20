@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { Eye, Heart, Loader2, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -75,24 +75,65 @@ function ProductCardComponent({ product }) {
   const [isAdding, setIsAdding] = useState(false);
   const [toast, setToast] = useState(null);
   const [selectedVariantId, setSelectedVariantId] = useState("");
+  const selectedVariantRef = useRef("");
 
   const productId = product?._id || product?.id;
   const productTitle = product?.title || product?.name || "Untitled Product";
   const description = product?.description || "No description available";
+
   const variants = useMemo(
     () => (Array.isArray(product?.variants) ? product.variants : []),
     [product?.variants],
   );
   const hasVariants = variants.length > 0;
 
+  const cartQuantityByVariant = useMemo(() => {
+    const quantityMap = new Map();
+    cartItems.forEach((item) => {
+      const itemKey = getCartItemKey(item);
+      if (!itemKey.startsWith(`${productId}::`)) return;
+      const variantId = itemKey.split("::")[1] || "";
+      quantityMap.set(variantId, Math.max(0, Number(item?.quantity || 0)));
+    });
+    return quantityMap;
+  }, [cartItems, productId]);
+
+  const variantOptions = useMemo(() => (
+    variants.map((variant, index) => {
+      const variantId = normalizeId(variant?._id || variant?.id);
+      const stockValue = getVariantStock(product, variantId);
+      const inCartQty = cartQuantityByVariant.get(variantId) || 0;
+      const remainingStock = Number.isFinite(stockValue) ? Math.max(0, stockValue - inCartQty) : Number.POSITIVE_INFINITY;
+
+      return {
+        id: variantId,
+        label: getVariantLabel(variant, index),
+        variant,
+        stock: stockValue,
+        remaining: remainingStock,
+        isAvailable: !Number.isFinite(stockValue) || remainingStock > 0,
+      };
+    })
+  ), [cartQuantityByVariant, product, variants]);
+
+  const firstAvailableVariantId = useMemo(() => (
+    variantOptions.find((entry) => entry.isAvailable)?.id || variantOptions[0]?.id || ""
+  ), [variantOptions]);
+
   useEffect(() => {
     if (!hasVariants) {
+      selectedVariantRef.current = "";
       setSelectedVariantId("");
       return;
     }
-    const firstInStock = variants.find((variant) => Number(variant?.stock || 0) > 0);
-    setSelectedVariantId(normalizeId(firstInStock?._id || firstInStock?.id || variants[0]?._id || variants[0]?.id));
-  }, [hasVariants, productId, variants]);
+
+    setSelectedVariantId((previousId) => {
+      const stillExists = variantOptions.some((entry) => entry.id === previousId);
+      const nextId = stillExists ? previousId : firstAvailableVariantId;
+      selectedVariantRef.current = nextId;
+      return nextId;
+    });
+  }, [firstAvailableVariantId, hasVariants, productId, variantOptions]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -100,19 +141,22 @@ function ProductCardComponent({ product }) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  const selectedVariant = useMemo(
-    () => variants.find((variant) => normalizeId(variant?._id || variant?.id) === selectedVariantId) || null,
-    [selectedVariantId, variants],
+  const selectedVariantOption = useMemo(
+    () => variantOptions.find((entry) => entry.id === selectedVariantId) || null,
+    [selectedVariantId, variantOptions],
   );
+  const selectedVariant = selectedVariantOption?.variant || null;
 
   const activePrice = selectedVariant?.price || product?.price;
   const priceAmount = getPriceAmount(activePrice);
   const priceCurrency = getPriceCurrency(activePrice, product?.currency);
 
-  const rawStock = selectedVariant?.stock ?? product?.stock ?? product?.quantity;
-  const stock = rawStock === undefined || rawStock === null
-    ? Number.POSITIVE_INFINITY
-    : Number(rawStock);
+  const stock = selectedVariantOption?.remaining
+    ?? (() => {
+      const rawStock = product?.stock ?? product?.quantity;
+      if (rawStock === undefined || rawStock === null) return Number.POSITIVE_INFINITY;
+      return Number(rawStock);
+    })();
 
   const imageSet = useMemo(
     () => getProductImagesWithFallback(product?.images),
@@ -123,12 +167,6 @@ function ProductCardComponent({ product }) {
   const hoverImage = imageSet[1] || imageSet[0];
   const hasSecondaryImage = hoverImage !== primaryImage;
   const shouldShowHoverImage = isHovered && hasSecondaryImage;
-
-  const cartQuantityForSelection = useMemo(() => {
-    const targetKey = getCartItemKey({ productId, variantId: selectedVariantId });
-    const matched = cartItems.find((item) => getCartItemKey(item) === targetKey);
-    return Math.max(0, Number(matched?.quantity || 0));
-  }, [cartItems, productId, selectedVariantId]);
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -146,6 +184,29 @@ function ProductCardComponent({ product }) {
     }
   };
 
+  const handleVariantChange = (event) => {
+    const nextId = event.target.value;
+    selectedVariantRef.current = nextId;
+    setSelectedVariantId(nextId);
+  };
+
+  const resolveVariantForAdd = () => {
+    let variantId = selectedVariantRef.current || selectedVariantId || firstAvailableVariantId;
+    if (!variantId) return "";
+
+    const currentEntry = variantOptions.find((entry) => entry.id === variantId);
+    if (currentEntry?.isAvailable) return variantId;
+
+    const fallbackId = variantOptions.find((entry) => entry.isAvailable)?.id || "";
+    if (fallbackId) {
+      selectedVariantRef.current = fallbackId;
+      setSelectedVariantId(fallbackId);
+      showToast("success", "Switched to an available variant.");
+    }
+
+    return fallbackId;
+  };
+
   const handleAdd = async (event) => {
     event.stopPropagation();
 
@@ -154,32 +215,40 @@ function ProductCardComponent({ product }) {
       return;
     }
 
-    if (!selectedVariantId) {
-      showToast("error", "Please select an available variant.");
+    if (!hasVariants) {
+      showToast("error", "No purchasable variant is configured yet.");
       return;
     }
 
-    const stockLimit = getVariantStock(product, selectedVariantId);
-    if (Number.isFinite(stockLimit) && cartQuantityForSelection >= stockLimit) {
+    const targetVariantId = resolveVariantForAdd();
+    if (!targetVariantId) {
+      showToast("error", "This product is currently out of stock.");
+      return;
+    }
+
+    const targetEntry = variantOptions.find((entry) => entry.id === targetVariantId);
+    if (!targetEntry?.isAvailable) {
       showToast("error", "Cannot exceed available stock.");
       return;
     }
 
+    const optimisticPrice = targetEntry?.variant?.price || product?.price;
     const snapshot = cartItems.map((item) => ({ ...item }));
+
     dispatch(upsertItemOptimistic({
       product,
       productId,
-      variantId: selectedVariantId,
-      varient: selectedVariantId,
+      variantId: targetVariantId,
+      varient: targetVariantId,
       quantity: 1,
-      price: activePrice,
+      price: optimisticPrice,
     }));
 
     setIsAdding(true);
     try {
       await handleAddToCart({
         productId,
-        variantId: selectedVariantId,
+        variantId: targetVariantId,
         quantity: 1,
       });
       showToast("success", "Added to cart successfully.");
@@ -191,12 +260,8 @@ function ProductCardComponent({ product }) {
     }
   };
 
-  const addButtonDisabled = isAdding || stock <= 0 || !selectedVariantId;
-  const addButtonLabel = stock <= 0
-    ? "Out of Stock"
-    : !selectedVariantId
-      ? "Variant Required"
-      : "Add to Cart";
+  const hasPurchasableVariant = variantOptions.some((entry) => entry.isAvailable);
+  const addButtonDisabled = isAdding || !hasVariants || !hasPurchasableVariant;
 
   return (
     <Motion.div
@@ -275,25 +340,23 @@ function ProductCardComponent({ product }) {
         </p>
 
         {hasVariants && (
-          <div className="mb-5" onClick={(event) => event.stopPropagation()}>
+          <div className="mb-5 space-y-2" onClick={(event) => event.stopPropagation()}>
             <label className="sr-only" htmlFor={`variant-${productId}`}>Variant</label>
             <select
               id={`variant-${productId}`}
               value={selectedVariantId}
-              onChange={(event) => setSelectedVariantId(event.target.value)}
+              onChange={handleVariantChange}
               className="w-full h-10 rounded-xl border border-white/10 bg-slate-950/50 px-3 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/50"
             >
-              {variants.map((variant, index) => {
-                const variantId = normalizeId(variant?._id || variant?.id);
-                const stockValue = Number(variant?.stock || 0);
-                const optionLabel = `${getVariantLabel(variant, index)} (${stockValue} in stock)`;
-                return (
-                  <option key={variantId || index} value={variantId}>
-                    {optionLabel}
-                  </option>
-                );
-              })}
+              {variantOptions.map((entry) => (
+                <option key={entry.id} value={entry.id} disabled={!entry.isAvailable}>
+                  {entry.label} ({Number.isFinite(entry.remaining) ? `${entry.remaining} left` : "Available"})
+                </option>
+              ))}
             </select>
+            {selectedVariantOption?.isAvailable && Number.isFinite(selectedVariantOption.remaining) && selectedVariantOption.remaining < 5 && (
+              <p className="text-[11px] font-semibold text-amber-300">Only few units left in this variant.</p>
+            )}
           </div>
         )}
 
@@ -315,7 +378,7 @@ function ProductCardComponent({ product }) {
             className="h-11 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs uppercase tracking-wider inline-flex items-center gap-2"
           >
             {isAdding ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
-            {addButtonLabel}
+            Add to Cart
           </Motion.button>
         </div>
       </div>
