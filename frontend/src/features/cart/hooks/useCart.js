@@ -30,6 +30,9 @@ export const useCart = () => {
             dispatch(setLoading(false));
         }
     }
-    return {}
+    return {
+        handleGetCart,
+        handleAddToCart
+    }
 
 }
