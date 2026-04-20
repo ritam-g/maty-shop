@@ -21,30 +21,30 @@ const AttributeInput = ({ attributes, setAttributes }) => {
 
   return (
     <div className="space-y-4">
-      <label className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-        Product Attributes
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 block">
+        Configuration Attributes
       </label>
 
       {/* Input area */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <input
           type="text"
-          placeholder="Key (e.g., Color)"
+          placeholder="Key (e.g. Color)"
           value={newKey}
           onChange={(e) => setNewKey(e.target.value)}
-          className="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+          className="flex-1 bg-slate-800/40 border border-white/5 rounded-xl px-4 py-2.5 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
         />
         <input
           type="text"
-          placeholder="Value (e.g., Phantom Black)"
+          placeholder="Value (e.g. Cobalt)"
           value={newValue}
           onChange={(e) => setNewValue(e.target.value)}
-          className="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+          className="flex-1 bg-slate-800/40 border border-white/5 rounded-xl px-4 py-2.5 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm"
         />
         <button
           type="button"
           onClick={addAttribute}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg active:scale-95"
+          className="px-6 py-2.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-indigo-500/20 active:scale-95"
         >
           Add
         </button>

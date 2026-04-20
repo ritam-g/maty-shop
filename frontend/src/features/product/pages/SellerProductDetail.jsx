@@ -13,11 +13,21 @@ const SellerProductDetail = () => {
   const { getProductByIdHandeller } = UseProduct();
   const { product, isLoading, error } = useSelector((state) => state.product);
   
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  
   useEffect(() => {
     if (productId) {
       getProductByIdHandeller(productId);
     }
   }, [productId, getProductByIdHandeller]);
+
+  // Handle setting initial selected variant
+  useEffect(() => {
+    const currentProduct = Array.isArray(product) ? product.find(p => p._id === productId) : product;
+    if (currentProduct?.variants?.length > 0 && !selectedVariant) {
+      setSelectedVariant(currentProduct.variants[0]);
+    }
+  }, [product, productId, selectedVariant]);
 
   if (isLoading && !product) {
     return (
@@ -44,30 +54,43 @@ const SellerProductDetail = () => {
 
   const currentProduct = Array.isArray(product) ? product.find(p => p._id === productId) : product;
 
+  // Derive display data based on selection
+  const displayProduct = {
+    ...currentProduct,
+    images: selectedVariant ? selectedVariant.images : currentProduct?.images,
+    price: selectedVariant ? selectedVariant.price : currentProduct?.price,
+    stock: selectedVariant ? selectedVariant.stock : currentProduct?.stock,
+    name: selectedVariant ? (typeof selectedVariant.name === 'string' ? selectedVariant.name : selectedVariant.title) : currentProduct?.name
+  };
+
   return (
-    <div className="min-h-screen bg-[#060e20] text-slate-200 py-12 selection:bg-indigo-500/30">
-      <Container className="space-y-12">
+    <div className="min-h-screen bg-[#0b1326] text-slate-200 py-12 selection:bg-indigo-500/30 font-inter relative overflow-hidden">
+      <Container className="space-y-12 relative z-10">
         {/* Navigation Breadcrumb */}
         <motion.nav 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center gap-2 text-sm text-slate-500"
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600"
         >
-          <span>Dashboard</span>
-          <span>/</span>
-          <span>Products</span>
-          <span>/</span>
-          <span className="text-indigo-400 font-medium">{currentProduct?.name || 'Product Details'}</span>
+          <span>Inventory Hub</span>
+          <span className="text-slate-800">/</span>
+          <span>Management</span>
+          <span className="text-slate-800">/</span>
+          <span className="text-indigo-400">{currentProduct?.name || 'Architectural Detail'}</span>
         </motion.nav>
 
         {/* Top Product Header */}
-        <ProductHeader product={currentProduct} />
+        <ProductHeader product={displayProduct} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Left: Variants Listing (Col 7) */}
           <div className="lg:col-span-7 space-y-12">
-             <VariantList variants={currentProduct?.variants} />
+             <VariantList 
+               variants={currentProduct?.variants} 
+               selectedVariantId={selectedVariant?._id}
+               onSelect={setSelectedVariant}
+             />
           </div>
 
           {/* Right: Add Variant Form (Col 5) */}
@@ -80,10 +103,10 @@ const SellerProductDetail = () => {
         </div>
       </Container>
       
-      {/* Dynamic Background Accents */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+      {/* Premium Ambient Architecture */}
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+        <div className="absolute top-[-15%] left-[-5%] w-[50%] h-[50%] bg-indigo-600/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-600/5 blur-[120px] rounded-full" />
       </div>
     </div>
   );

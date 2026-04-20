@@ -60,18 +60,18 @@ const VariantForm = ({ productId, onVariantAdded }) => {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-white/5 shadow-2xl h-full"
+      className="bg-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-white/5 shadow-2xl h-full flex flex-col"
     >
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white">Add New Variant</h2>
-        <p className="text-slate-500 mt-1">Configure options for your product</p>
+      <div className="mb-10">
+        <h2 className="text-2xl font-bold text-white tracking-tight">Expand Collection</h2>
+        <p className="text-slate-500 text-sm mt-1">Configure a new architectural variant for this item.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8 flex-1 flex flex-col">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-              Variant Name
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+              Variant Identity
             </label>
             <input
               type="text"
@@ -79,34 +79,33 @@ const VariantForm = ({ productId, onVariantAdded }) => {
               required
               value={formData.name}
               onChange={handleChange}
-              placeholder="e.g. Midnight Edition / 256GB"
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+              placeholder="e.g. Obsidian Black / 12GB"
+              className="w-full bg-slate-800/40 border border-white/5 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm font-medium"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-              Currency
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+              Denomination
             </label>
             <select
               name="currency"
               value={formData.currency}
               onChange={handleChange}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none font-medium"
+              className="w-full bg-slate-800/40 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 appearance-none text-sm font-bold"
             >
               <option value="USD">USD ($)</option>
               <option value="INR">INR (₹)</option>
               <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-              Price
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+              Valuation
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">
                 {formData.currency === 'USD' ? '$' : formData.currency === 'INR' ? '₹' : '€'}
               </span>
               <input
@@ -116,14 +115,14 @@ const VariantForm = ({ productId, onVariantAdded }) => {
                 value={formData.price}
                 onChange={handleChange}
                 placeholder="0.00"
-                className="w-full bg-slate-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                className="w-full bg-slate-800/40 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm font-bold"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-              Stock Units
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+              Availability
             </label>
             <input
               type="number"
@@ -132,7 +131,7 @@ const VariantForm = ({ productId, onVariantAdded }) => {
               value={formData.stock}
               onChange={handleChange}
               placeholder="0"
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+              className="w-full bg-slate-800/40 border border-white/5 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm font-bold"
             />
           </div>
         </div>

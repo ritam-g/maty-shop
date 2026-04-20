@@ -35,29 +35,20 @@ const ProductHeader = ({ product }) => {
             {product.description}
           </p>
 
-          <div className="pt-6 flex flex-wrap gap-6 items-center">
+          <div className="pt-6 flex flex-wrap gap-8 items-center">
             <div className="space-y-1">
-              <p className="text-slate-500 text-sm uppercase tracking-widest font-medium">Base Price</p>
-              <p className="text-2xl font-semibold text-white">
-                {product.currency} {product.price?.toLocaleString()}
+              <p className="text-slate-500 text-xs uppercase tracking-[0.2em] font-bold">Base Price</p>
+              <p className="text-3xl font-bold text-white tracking-tight">
+                {product.currency} {typeof product.price === 'object' ? product.price.amount : product.price}
               </p>
             </div>
             
-            <div className="h-10 w-px bg-white/10 hidden md:block" />
+            <div className="h-10 w-px bg-white/5 hidden md:block" />
 
             <div className="space-y-1">
-              <p className="text-slate-500 text-sm uppercase tracking-widest font-medium">Variants</p>
-              <p className="text-2xl font-semibold text-white">
-                {product.variants?.length || 0} Available
-              </p>
-            </div>
-            
-            <div className="h-10 w-px bg-white/10 hidden md:block" />
-
-            <div className="space-y-1">
-              <p className="text-slate-500 text-sm uppercase tracking-widest font-medium">Total Stock</p>
-              <p className="text-2xl font-semibold text-emerald-400">
-                {product.variants?.reduce((acc, curr) => acc + curr.stock, 0) || product.stock || 0} Units
+              <p className="text-slate-500 text-xs uppercase tracking-[0.2em] font-bold">Inventory</p>
+              <p className="text-3xl font-bold text-white tracking-tight">
+                {product.variants?.length || 0} <span className="text-sm font-medium text-slate-500">Variants</span>
               </p>
             </div>
           </div>

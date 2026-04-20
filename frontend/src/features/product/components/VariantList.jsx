@@ -1,23 +1,25 @@
 import React from 'react';
 import VariantCard from './VariantCard';
 
-const VariantList = ({ variants }) => {
+const VariantList = ({ variants, selectedVariantId, onSelect }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-white">Product Variants</h2>
-        <span className="px-3 py-1 bg-slate-800 text-slate-400 text-xs font-medium rounded-lg border border-white/5">
-          {variants?.length || 0} Total
+        <h2 className="text-2xl font-bold text-white tracking-tight">Product Variants</h2>
+        <span className="px-3 py-1 bg-slate-800/50 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-white/5">
+          {variants?.length || 0} Total Units
         </span>
       </div>
       
       {variants && variants.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {variants.map((variant, index) => (
             <VariantCard 
               key={variant._id || index} 
               variant={variant} 
               index={index} 
+              isSelected={selectedVariantId === (variant._id || index)}
+              onClick={() => onSelect(variant)}
             />
           ))}
         </div>
