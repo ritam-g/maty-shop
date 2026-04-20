@@ -3,6 +3,7 @@ import { loginValidator, registerValidator } from "../validator/auth.validator.j
 import { getMeController, googleController, loginController, registerController } from "../controller/auth.controller.js";
 import passport from 'passport'
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authLimiter } from "../middleware/rateLimit/auth.limiter.js";
 
 /**
  * Express router for authentication routes
@@ -16,7 +17,7 @@ const authRouter = Router();
  * Uses registerValidator middleware for input validation
  * Uses registerController to handle the registration logic
  */
-authRouter.post("/register", registerValidator, registerController);
+authRouter.post("/register",authLimiter, registerValidator, registerController);
 
 /**
  * POST /auth/login
@@ -24,14 +25,14 @@ authRouter.post("/register", registerValidator, registerController);
  * Uses loginValidator middleware for input validation
  * Uses loginController to handle the login logic
  */
-authRouter.post("/login", loginValidator, loginController);
+authRouter.post("/login", authLimiter,loginValidator, loginController);
 
 /**
  * GET /auth/me
  * Retrieves the current authenticated user's information
  * TODO: Implement this endpoint with proper authentication middleware
  */
-authRouter.get("/me",authMiddleware,getMeController);
+authRouter.get("/me", authLimiter, authMiddleware, getMeController);
 
 /**
  * GET /auth/google
@@ -39,7 +40,7 @@ authRouter.get("/me",authMiddleware,getMeController);
  * Redirects user to Google's authentication page
  * Uses passport.authenticate middleware with Google strategy
  */
-authRouter.get('/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
+authRouter.get('/google',authLimiter, passport.authenticate('google', { scope: ['email', 'profile'] }));
 
 /**
  * GET /auth/google/callback
