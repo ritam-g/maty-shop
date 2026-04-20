@@ -7,6 +7,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { AppConfig } from './config/config.js';
 import productRouter from './routes/product.route.js';
+import cartRouter from './routes/cart.route.js';
 
 /**
  * Express application instance
@@ -44,7 +45,7 @@ passport.use(new GoogleStrategy({
 // Route configuration
 app.use('/api/auth', authRouter) // Authentication routes
 app.use('/api/product', productRouter) // Product routes
-
+app.use(`/api/cart`,cartRouter)
 // Global error handler middleware
 app.use(globalErrorHandler);
 

@@ -102,7 +102,12 @@ export async function getProductByIdService(id) {
     return product;
 }
 /**  
- * @default plasea add req.file in the newVarents.images
+ * Updates a product with new varents
+ * 
+ * @param {string} productId - The ID of the product to update
+ * @param {string} UserId - The ID of the user who is updating the product
+ * @param {Object} newVarents - The new varents to add to the product
+ * @returns {Promise<Object>} The updated product document
  */
 export async function updateProductVarent(productId, UserId, newVarents) {
 
