@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Shared search hook with a simple debounce flow.
- * Input changes -> wait -> fetch suggestions -> update results.
+ * Function Name: useProductSearch
+ * Purpose: Share debounced product search logic between buyer and seller search bars.
+ * Params:
+ * - fetchFn: Search request function
+ * - delay: Debounce time in milliseconds
+ * Returns:
+ * - Query state, results, loading state, error state, and clear helper
  */
 export function useProductSearch(fetchFn, delay = 300) {
   const [query, setQuery] = useState('');

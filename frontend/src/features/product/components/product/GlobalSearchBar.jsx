@@ -6,7 +6,10 @@ import { useProductSearch } from '../../hooks/useProductSearch';
 import { getProductImagesWithFallback } from '../../utils/image.utils';
 
 /**
- * Buyer-facing product search used in the navbar.
+ * Function Name: GlobalSearchBar
+ * Purpose: Provide buyer-facing search suggestions in the navbar and navigate to product pages.
+ * Returns:
+ * - Search input with debounced suggestion dropdown
  */
 function GlobalSearchBar() {
   const navigate = useNavigate();
@@ -57,6 +60,14 @@ function GlobalSearchBar() {
     }
   }, []);
 
+  /**
+   * Function Name: getDisplayPrice
+   * Purpose: Convert a product price object into a short suggestion-friendly label.
+   * Params:
+   * - product: Product object from search results
+   * Returns:
+   * - Formatted price text or null
+   */
   const getDisplayPrice = (product) => {
     const price = product?.price;
     const amount = price && typeof price === 'object' ? price.amount : price;

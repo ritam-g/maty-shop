@@ -4,6 +4,17 @@ import { handleProductImageError } from "../../utils/image.utils";
 
 const IMAGE_TRANSITION = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
 
+/**
+ * Function Name: ProductImageGallery
+ * Purpose: Render the main product image with thumbnails and a lightweight hover zoom effect.
+ * Props:
+ * - title: Product title for alt text
+ * - images: Gallery image list
+ * - activeImage: Currently selected image
+ * - onImageSelect: Image selection callback
+ * Returns:
+ * - Product gallery UI
+ */
 function ProductImageGallery({ title, images, activeImage, onImageSelect }) {
   const galleryImages = Array.isArray(images) && images.length > 0 ? images : [];
 

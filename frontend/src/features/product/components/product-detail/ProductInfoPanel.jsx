@@ -4,6 +4,12 @@ import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import VariantAttributeDisplay from "./VariantAttributeDisplay";
 
+/**
+ * Function Name: ProductInfoPanel
+ * Purpose: Show core purchase information and allow users to switch variants from the hero panel.
+ * Returns:
+ * - Product information card
+ */
 function ProductInfoPanel({
   badgeText,
   productTitle,

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import priceSchema from "./price.schema.js";
-import type from "mongoose/lib/schema/operators/type.js";
 
 /**  
  * Mongoose schema for Cart model

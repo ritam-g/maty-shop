@@ -2,10 +2,20 @@ import { useDispatch } from "react-redux"
 import { getMe, login, register } from "../services/authApi.service.js"
 import { setLoading, setUser, setError } from "../store/auth.slice.js"
 
-
+/**
+ * Function Name: useAuth
+ * Purpose: Wrap authentication API calls and sync user session state into Redux.
+ * Returns:
+ * - Auth action handlers for register, login, and session restore
+ */
 function useAuth() {
 
     const dispatch = useDispatch()
+
+    /**
+     * Function Name: handleRegister
+     * Purpose: Register a new user and store the returned user object in Redux.
+     */
     async function handleRegister({ name, email, password, role, contact }) {
         dispatch(setLoading(true))
         try {
@@ -19,6 +29,11 @@ function useAuth() {
         }
 
     }
+
+    /**
+     * Function Name: handleLogin
+     * Purpose: Log in a user and hydrate Redux auth state from the backend response.
+     */
     async function handleLogin({ email, password }) {
         dispatch(setLoading(true))
         try {
@@ -32,6 +47,11 @@ function useAuth() {
         }
 
     }
+
+    /**
+     * Function Name: handleGetme
+     * Purpose: Restore the authenticated user session when the app reloads.
+     */
     async function handleGetme() {
         dispatch(setLoading(true))
         try {

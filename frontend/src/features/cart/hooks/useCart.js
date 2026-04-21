@@ -3,9 +3,21 @@ import { useDispatch } from "react-redux";
 import { addToCart, getCart, updateCartItemQuantity } from "../services/api.service.js";
 import { clearError, setError, setItems, setLoading } from "../state/cart.slice.js";
 
+/**
+ * Function Name: useCart
+ * Purpose: Encapsulate cart API calls and sync server responses into Redux state.
+ * Returns:
+ * - Cart action handlers used by product and cart screens
+ */
 export const useCart = () => {
   const dispatch = useDispatch();
 
+  /**
+   * Function Name: handleGetCart
+   * Purpose: Rehydrate cart state from the backend, especially after reload.
+   * Returns:
+   * - Latest cart response
+   */
   const handleGetCart = useCallback(async () => {
     dispatch(setLoading(true));
     dispatch(clearError());
@@ -22,6 +34,16 @@ export const useCart = () => {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: handleAddToCart
+   * Purpose: Add one variant to cart and replace Redux items with server truth.
+   * Params:
+   * - productId: Product id
+   * - variantId: Variant id
+   * - quantity: Quantity increment
+   * Returns:
+   * - Updated cart response
+   */
   const handleAddToCart = useCallback(async ({ productId, variantId, quantity = 1 }) => {
     dispatch(setLoading(true));
     dispatch(clearError());
@@ -38,6 +60,16 @@ export const useCart = () => {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: handleUpdateCartItemQuantity
+   * Purpose: Persist quantity changes from the cart page and sync Redux with the backend.
+   * Params:
+   * - productId: Product id
+   * - variantId: Variant id
+   * - quantity: New absolute quantity
+   * Returns:
+   * - Updated cart response
+   */
   const handleUpdateCartItemQuantity = useCallback(async ({ productId, variantId, quantity }) => {
     dispatch(setLoading(true));
     dispatch(clearError());

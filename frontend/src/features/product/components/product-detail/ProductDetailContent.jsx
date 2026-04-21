@@ -2,6 +2,12 @@ import React from "react";
 import { CheckCircle2 } from "lucide-react";
 import VariantAttributeDisplay from "./VariantAttributeDisplay";
 
+/**
+ * Function Name: ProductDetailContent
+ * Purpose: Render detailed product copy, highlights, and the visual variant comparison grid.
+ * Returns:
+ * - Lower product detail sections
+ */
 function ProductDetailContent({
   description,
   highlights,

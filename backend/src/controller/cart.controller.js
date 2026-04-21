@@ -2,14 +2,41 @@ import cartModel from "../model/cart.model.js";
 import productModel from "../model/product.model.js";
 import { AppError } from "../utils/AppError.js";
 
+/**
+ * Function Name: populateCart
+ * Purpose: Load a user's cart with product details hydrated for frontend rendering.
+ * Params:
+ * - userId: Authenticated user id
+ * Returns:
+ * - Promise resolving to the populated cart document
+ */
 const populateCart = async (userId) => (
   cartModel.findOne({ user: userId }).populate("items.product")
 );
 
+/**
+ * Function Name: findVariant
+ * Purpose: Find the requested variant inside a product document.
+ * Params:
+ * - product: Product mongoose document
+ * - variantId: Selected variant id
+ * Returns:
+ * - Matching variant object or null
+ */
 const findVariant = (product, variantId) => (
   product?.variants?.find((variant) => variant._id.toString() === variantId) || null
 );
 
+/**
+ * Function Name: addToCartController
+ * Purpose: Add a variant to cart or increase quantity when the same variant already exists.
+ * Params:
+ * - req.params.productId: Product id
+ * - req.params.variantId: Variant id
+ * - req.params.quantity: Quantity increment
+ * Returns:
+ * - JSON response containing the fully populated updated cart
+ */
 export async function addToCartController(req, res, next) {
   try {
     const { productId, variantId, quantity = 1 } = req.params;
@@ -75,6 +102,16 @@ export async function addToCartController(req, res, next) {
   }
 }
 
+/**
+ * Function Name: updateCartItemQuantityController
+ * Purpose: Set an exact cart quantity for one product variant, or remove it when quantity is zero.
+ * Params:
+ * - req.params.productId: Product id
+ * - req.params.variantId: Variant id
+ * - req.params.quantity: New absolute quantity
+ * Returns:
+ * - JSON response containing the fully populated updated cart
+ */
 export async function updateCartItemQuantityController(req, res, next) {
   try {
     const { productId, variantId, quantity } = req.params;
@@ -141,6 +178,14 @@ export async function updateCartItemQuantityController(req, res, next) {
   }
 }
 
+/**
+ * Function Name: getCartController
+ * Purpose: Return the authenticated user's cart with product details populated.
+ * Params:
+ * - req.user: Authenticated user payload
+ * Returns:
+ * - JSON response containing the cart document
+ */
 export const getCartController = async (req, res) => {
   const user = req.user;
 

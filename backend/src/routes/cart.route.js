@@ -8,6 +8,10 @@ import {
 
 const cartRouter = express.Router()
 
+/**
+ * Function Name: cartRouter
+ * Purpose: Register cart endpoints for add, fetch, and quantity update flows.
+ */
 cartRouter.get('/add/:productId/:variantId/:quantity', authMiddleware, addToCartController)
 cartRouter.patch('/item/:productId/:variantId/:quantity', authMiddleware, updateCartItemQuantityController)
 cartRouter.get('/get', authMiddleware, getCartController)

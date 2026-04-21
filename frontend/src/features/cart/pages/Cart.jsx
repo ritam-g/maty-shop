@@ -96,6 +96,12 @@ function EmptyCartState({ onStartShopping }) {
   );
 }
 
+/**
+ * Function Name: Cart
+ * Purpose: Fetch, display, and update the authenticated user's cart.
+ * Returns:
+ * - Full cart page with optimistic quantity controls and summary
+ */
 function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -132,6 +138,12 @@ function Cart() {
     setToast({ id: Date.now(), type, message });
   }, []);
 
+  /**
+   * Function Name: handleIncrease
+   * Purpose: Optimistically increase cart quantity, then persist that change on the backend.
+   * Params:
+   * - item: Selected cart item
+   */
   const handleIncrease = useCallback(async (item) => {
     const key = getCartItemKey(item);
     if (!key || pendingMap[key]) return;
@@ -165,6 +177,12 @@ function Cart() {
     }
   }, [cartItems, dispatch, handleAddToCart, pendingMap, setPending, showToast]);
 
+  /**
+   * Function Name: handleDecrease
+   * Purpose: Optimistically decrease cart quantity, then save the new exact quantity on the backend.
+   * Params:
+   * - item: Selected cart item
+   */
   const handleDecrease = useCallback(async (item) => {
     const key = getCartItemKey(item);
     if (!key || pendingMap[key]) return;
@@ -193,6 +211,12 @@ function Cart() {
     }
   }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
 
+  /**
+   * Function Name: handleRemove
+   * Purpose: Remove a cart line locally first, then persist removal on the backend.
+   * Params:
+   * - item: Selected cart item
+   */
   const handleRemove = useCallback(async (item) => {
     const key = getCartItemKey(item);
     if (!key || pendingMap[key]) return;

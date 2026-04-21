@@ -141,6 +141,12 @@ function ProductToast({ toast }) {
   );
 }
 
+/**
+ * Function Name: ProductDetailPage
+ * Purpose: Render the buyer product detail page, selected variant state, and add-to-cart flow.
+ * Returns:
+ * - Full product detail experience with gallery, variant selection, and related products
+ */
 function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -365,10 +371,20 @@ function ProductDetailPage() {
     }))
   ), [relatedProducts]);
 
+  /**
+   * Function Name: showToast
+   * Purpose: Display a short-lived success or error message for product actions.
+   */
   const showToast = (type, message) => {
     setToast({ id: Date.now(), type, message });
   };
 
+  /**
+   * Function Name: resolveVariantForAdd
+   * Purpose: Ensure add-to-cart uses an available variant, falling back when the selected one is unavailable.
+   * Returns:
+   * - Variant id to send to cart API
+   */
   const resolveVariantForAdd = () => {
     let variantId = selectedVariant?.id || firstAvailableVariantId;
     if (!variantId) return "";
@@ -384,12 +400,22 @@ function ProductDetailPage() {
     return fallbackId;
   };
 
+  /**
+   * Function Name: handleVariantChange
+   * Purpose: Update the selected variant object and sync the hero image immediately.
+   * Params:
+   * - variantEntry: Selected normalized variant option
+   */
   const handleVariantChange = (variantEntry) => {
     if (!variantEntry) return;
     setSelectedVariant(variantEntry);
     setActiveImage(variantEntry.previewImage || variantEntry.imageList?.[0] || PRODUCT_FALLBACK_IMAGE);
   };
 
+  /**
+   * Function Name: handleAdd
+   * Purpose: Optimistically add the selected variant to cart, then replace local state with backend truth.
+   */
   const handleAdd = async () => {
     if (!productId) {
       showToast("error", "Product is unavailable.");

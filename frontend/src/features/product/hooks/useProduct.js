@@ -21,9 +21,19 @@ import {
 
 const getErrorMessage = (error) => error?.response?.data?.message || error?.message || 'Something went wrong';
 
+/**
+ * Function Name: UseProduct
+ * Purpose: Centralize product CRUD, list fetching, cache flags, and seller dashboard refresh logic.
+ * Returns:
+ * - Product action handlers used across buyer and seller screens
+ */
 export function UseProduct() {
   const dispatch = useDispatch();
 
+  /**
+   * Function Name: createProductHandeler
+   * Purpose: Create a product and invalidate cached buyer/seller lists.
+   */
   const createProductHandeler = useCallback(async (productDetails) => {
     dispatch(setLoading(true));
     dispatch(setError(null));
@@ -42,6 +52,10 @@ export function UseProduct() {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: getProductHandeler
+   * Purpose: Fetch seller-owned products unless that list is already cached.
+   */
   const getProductHandeler = useCallback(async ({ force = false } = {}) => {
     const productState = store.getState().product;
 
@@ -66,6 +80,10 @@ export function UseProduct() {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: getAllProductHandeller
+   * Purpose: Fetch the buyer-facing product list with lightweight cache guards.
+   */
   const getAllProductHandeller = useCallback(async ({ force = false } = {}) => {
     const productState = store.getState().product;
 
@@ -89,6 +107,10 @@ export function UseProduct() {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: getProductByIdHandeller
+   * Purpose: Fetch one product for detail page rendering.
+   */
   const getProductByIdHandeller = useCallback(async (productId) => {
     dispatch(setLoading(true));
     dispatch(setError(null));
@@ -105,6 +127,10 @@ export function UseProduct() {
     }
   }, [dispatch]);
 
+  /**
+   * Function Name: updateProductVarientHandeler
+   * Purpose: Create a product variant and invalidate cached lists so dashboard data reloads cleanly.
+   */
   const updateProductVarientHandeler = useCallback(async (data, productId) => {
     const formData = new FormData();
 

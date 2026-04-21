@@ -6,7 +6,12 @@ import { useProductSearch } from '../../hooks/useProductSearch';
 import { getProductImagesWithFallback } from '../../utils/image.utils';
 
 /**
- * Seller-only product search used in the dashboard header.
+ * Function Name: SellerSearchBar
+ * Purpose: Provide seller-only search suggestions that deep-link to seller product detail pages.
+ * Props:
+ * - className: Optional wrapper classes
+ * Returns:
+ * - Search input with seller inventory suggestions
  */
 function SellerSearchBar({ className = '' }) {
   const navigate = useNavigate();
@@ -52,6 +57,14 @@ function SellerSearchBar({ className = '' }) {
     }
   }, []);
 
+  /**
+   * Function Name: getDisplayPrice
+   * Purpose: Build short price text for seller search suggestions.
+   * Params:
+   * - product: Seller product result
+   * Returns:
+   * - Formatted price text or null
+   */
   const getDisplayPrice = (product) => {
     const price = product?.price;
     const amount = price && typeof price === 'object' ? price.amount : price;
@@ -64,6 +77,14 @@ function SellerSearchBar({ className = '' }) {
     return `${Number(amount).toLocaleString()} ${currency}`;
   };
 
+  /**
+   * Function Name: stockColor
+   * Purpose: Map stock quantity into a quick visual status color.
+   * Params:
+   * - qty: Numeric stock quantity
+   * Returns:
+   * - Tailwind text color class
+   */
   const stockColor = (qty) => {
     if (!Number.isFinite(qty) || qty > 5) return 'text-emerald-400';
     if (qty > 0) return 'text-amber-400';

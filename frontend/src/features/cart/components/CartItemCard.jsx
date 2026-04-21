@@ -11,6 +11,16 @@ import {
   getVariantStock,
 } from "../utils/cart.utils.js";
 
+/**
+ * Function Name: CartItemCard
+ * Purpose: Render one cart line item with quantity controls and price details.
+ * Props:
+ * - item: Cart item object
+ * - isPending: Whether a quantity mutation is in flight
+ * - onIncrease/onDecrease/onRemove: Action callbacks from Cart page
+ * Returns:
+ * - Cart item card UI
+ */
 function CartItemCard({ item, isPending = false, onIncrease, onDecrease, onRemove }) {
   const product = item?.product || {};
   const quantity = Math.max(1, Number(item?.quantity || 1));

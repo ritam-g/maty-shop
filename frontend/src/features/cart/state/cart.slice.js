@@ -8,6 +8,14 @@ import {
 
 const findItemIndexByKey = (items, key) => items.findIndex((item) => getCartItemKey(item) === key);
 
+/**
+ * Function Name: buildOptimisticItem
+ * Purpose: Normalize a cart item shape before storing it optimistically in Redux.
+ * Params:
+ * - payload: Partial cart item or product payload
+ * Returns:
+ * - Normalized cart item
+ */
 const buildOptimisticItem = (payload) => ({
   ...payload,
   product: payload?.product || payload,

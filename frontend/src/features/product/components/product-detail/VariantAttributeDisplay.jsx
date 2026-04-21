@@ -38,6 +38,16 @@ const resolveColorValue = (value) => {
   return COLOR_MAP[normalized] || null;
 };
 
+/**
+ * Function Name: VariantAttributeDisplay
+ * Purpose: Render variant attributes as smarter UI elements such as color swatches and size chips.
+ * Props:
+ * - name: Attribute name
+ * - value: Attribute value
+ * - emphasized: Whether to use the stronger selected-state style
+ * Returns:
+ * - Attribute badge UI
+ */
 function VariantAttributeDisplay({ name, value, emphasized = false }) {
   const label = String(name || "");
   const displayValue = String(value || "");

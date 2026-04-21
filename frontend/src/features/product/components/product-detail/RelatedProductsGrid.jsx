@@ -2,6 +2,12 @@ import React from "react";
 import { ArrowRight } from "lucide-react";
 import { handleProductImageError } from "../../utils/image.utils";
 
+/**
+ * Function Name: RelatedProductsGrid
+ * Purpose: Render related product cards and allow navigation to another product detail page.
+ * Returns:
+ * - Related products section
+ */
 function RelatedProductsGrid({ products, onProductClick }) {
   if (!Array.isArray(products) || products.length === 0) return null;
 
