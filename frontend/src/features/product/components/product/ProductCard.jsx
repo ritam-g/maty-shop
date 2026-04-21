@@ -338,8 +338,8 @@ function ProductCardComponent({ product }) {
         <p className="text-slate-400 text-sm mt-2 mb-5 line-clamp-2 min-h-[2.5rem]">
           {description}
         </p>
-
-        {hasVariants && (
+        {/* not needed */}
+        {/* {hasVariants && (
           <div className="mb-5 space-y-2" onClick={(event) => event.stopPropagation()}>
             <label className="sr-only" htmlFor={`variant-${productId}`}>Variant</label>
             <select
@@ -358,9 +358,9 @@ function ProductCardComponent({ product }) {
               <p className="text-[11px] font-semibold text-amber-300">Only few units left in this variant.</p>
             )}
           </div>
-        )}
+        )} */}
 
-        <div className="flex items-center justify-between">
+        <div className="flex gap-2 items-center justify-between">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Price</span>
             <span className="text-2xl font-black text-white tracking-tight">
@@ -375,7 +375,7 @@ function ProductCardComponent({ product }) {
             type="button"
             disabled={addButtonDisabled}
             onClick={handleAdd}
-            className="h-11 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs uppercase tracking-wider inline-flex items-center gap-2"
+            className=" h-5 cursor-pointer  py-2 px-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-[0.6rem] uppercase tracking-wider inline-flex items-center gap-2"
           >
             {isAdding ? <Loader2 size={16} className="animate-spin" /> : <ShoppingCart size={16} />}
             Add to Cart
