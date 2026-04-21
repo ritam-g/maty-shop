@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, memo } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Search, X } from 'lucide-react';
 import { searchSellerProducts } from '../../services/product.api';
@@ -6,62 +6,64 @@ import { useProductSearch } from '../../hooks/useProductSearch';
 import { getProductImagesWithFallback } from '../../utils/image.utils';
 
 /**
- * SellerSearchBar — searches only the logged-in seller's products.
- *
- * Designed to drop into the DashBoard header row.
- * - Debounced via `useProductSearch` (300 ms).
- * - `useCallback` keeps the fetch reference stable across renders.
- * - Dropdown closes on outside click and on Escape.
- * - Clicking a suggestion navigates to the seller product detail route.
- *
- * @param {object}   props
- * @param {string}  [props.className]  - extra classes for outer wrapper
+ * Seller-only product search used in the dashboard header.
  */
 function SellerSearchBar({ className = '' }) {
   const navigate = useNavigate();
   const wrapperRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const fetchSuggestions = useCallback((searchText) => searchSellerProducts(searchText), []);
 
-  // Stable fetch — seller-scoped endpoint.
-  const fetchSuggestions = useCallback((q) => searchSellerProducts(q), []);
-
-  const { query, setQuery, results, isSearching, clearSearch } =
+  const { query, setQuery, results, isSearching, error, clearSearch } =
     useProductSearch(fetchSuggestions, 300);
 
-  const isOpen = Boolean(query.trim());
-
-  // Close dropdown on outside pointer down.
+  // Open the dropdown only when the seller has entered search text.
   useEffect(() => {
-    const handlePointerDown = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
-        clearSearch();
+    setIsOpen(Boolean(query.trim()));
+  }, [query]);
+
+  // Close the dropdown if the click happens outside the search component.
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
       }
     };
+
     document.addEventListener('pointerdown', handlePointerDown);
     return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [clearSearch]);
+  }, []);
 
-  /** Navigate to seller product detail and reset. */
+  // Open the seller product details page after a suggestion is selected.
   const handleSelect = useCallback((product) => {
-    const id = product?._id || product?.id;
-    if (!id) return;
+    const productId = product?._id || product?.id;
+
+    if (!productId) return;
+
     clearSearch();
-    navigate(`/seller/product/${id}`);
-  }, [navigate, clearSearch]);
+    setIsOpen(false);
+    navigate(`/seller/product/${productId}`);
+  }, [clearSearch, navigate]);
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape') clearSearch();
-  }, [clearSearch]);
+  // Escape only hides the suggestion box so the user can continue editing.
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
+  }, []);
 
-  /* ─── Helper: format price for display ──────────────────────── */
   const getDisplayPrice = (product) => {
-    const p = product?.price;
-    const amount = p && typeof p === 'object' ? p.amount : p;
-    const currency = p && typeof p === 'object' ? (p.currency || 'INR') : (product?.currency || 'INR');
+    const price = product?.price;
+    const amount = price && typeof price === 'object' ? price.amount : price;
+    const currency = price && typeof price === 'object'
+      ? price.currency || 'INR'
+      : product?.currency || 'INR';
+
     if (amount == null) return null;
+
     return `${Number(amount).toLocaleString()} ${currency}`;
   };
 
-  /* ─── Stock indicator colour ─────────────────────────────────── */
   const stockColor = (qty) => {
     if (!Number.isFinite(qty) || qty > 5) return 'text-emerald-400';
     if (qty > 0) return 'text-amber-400';
@@ -70,19 +72,12 @@ function SellerSearchBar({ className = '' }) {
 
   return (
     <div ref={wrapperRef} className={`relative w-full max-w-sm ${className}`}>
-      {/* ── Input ──────────────────────────────────────────────── */}
-      <div
-        className={`
-          flex items-center gap-3 px-4 py-2.5 rounded-2xl
-          bg-slate-800/70 backdrop-blur-xl border border-white/8
-          focus-within:border-indigo-500/60
-          focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.12)]
-          transition-all duration-300
-        `}
-      >
-        {isSearching
-          ? <Loader2 size={16} className="text-indigo-400 animate-spin shrink-0" />
-          : <Search size={16} className="text-slate-400 shrink-0" />}
+      <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-800/70 px-4 py-2.5 backdrop-blur-xl transition-all duration-300 focus-within:border-indigo-500/60 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.12)]">
+        {isSearching ? (
+          <Loader2 size={16} className="shrink-0 animate-spin text-indigo-400" />
+        ) : (
+          <Search size={16} className="shrink-0 text-slate-400" />
+        )}
 
         <input
           id="seller-search-input"
@@ -90,122 +85,106 @@ function SellerSearchBar({ className = '' }) {
           autoComplete="off"
           spellCheck={false}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
+          onFocus={() => query.trim() && setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search your products…"
-          className="
-            flex-1 min-w-0 bg-transparent text-sm text-white
-            placeholder-slate-500 outline-none border-none
-          "
+          placeholder="Search your products..."
+          className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder-slate-500 outline-none"
           aria-label="Search seller products"
           aria-autocomplete="list"
           aria-expanded={isOpen}
           aria-controls="seller-search-listbox"
         />
 
-        {/* Clear button — only visible while there's a query */}
         {query && (
           <button
             type="button"
             aria-label="Clear search"
-            onClick={clearSearch}
-            className="text-slate-500 hover:text-white transition-colors shrink-0"
+            onClick={() => {
+              clearSearch();
+              setIsOpen(false);
+            }}
+            className="shrink-0 text-slate-500 transition-colors hover:text-white"
           >
             <X size={14} />
           </button>
         )}
       </div>
 
-      {/* ── Suggestions dropdown ────────────────────────────────── */}
       {isOpen && (
         <ul
           id="seller-search-listbox"
           role="listbox"
           aria-label="Your product suggestions"
-          className="
-            absolute top-full left-0 right-0 mt-2 z-[200]
-            rounded-2xl overflow-hidden
-            bg-slate-900/95 backdrop-blur-xl border border-white/10
-            shadow-[0_20px_60px_rgba(0,0,0,0.6)]
-            max-h-[22rem] overflow-y-auto
-          "
+          className="absolute left-0 right-0 top-full z-[200] mt-2 max-h-[22rem] overflow-y-auto rounded-2xl border border-white/10 bg-slate-900/95 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl"
         >
-          {/* Loading shimmer */}
+          {/* Loading state while searching seller products. */}
           {isSearching && results.length === 0 && (
-            <li className="flex items-center gap-3 px-4 py-5 text-slate-400 text-sm">
+            <li className="flex items-center gap-3 px-4 py-5 text-sm text-slate-400">
               <Loader2 size={15} className="animate-spin text-indigo-400" />
-              Searching your inventory…
+              Searching your inventory...
             </li>
           )}
 
-          {/* Empty state */}
-          {!isSearching && results.length === 0 && (
-            <li className="px-4 py-5 text-slate-400 text-sm text-center">
-              No listings match&nbsp;
-              <span className="text-white font-semibold">"{query}"</span>
+          {/* Error state if the seller search request fails. */}
+          {!isSearching && error && (
+            <li className="px-4 py-5 text-center text-sm text-red-300">
+              {error}
             </li>
           )}
 
-          {/* Result rows */}
-          {results.map((product, idx) => {
-            const id = product?._id || product?.id;
+          {/* Empty state when no seller product matches the query. */}
+          {!isSearching && !error && results.length === 0 && (
+            <li className="px-4 py-5 text-center text-sm text-slate-400">
+              No listings match <span className="font-semibold text-white">{query}</span>
+            </li>
+          )}
+
+          {/* Matching seller products shown as quick suggestions. */}
+          {results.map((product, index) => {
+            const productId = product?._id || product?.id;
             const title = product?.title || product?.name || 'Untitled';
-            const [thumb] = getProductImagesWithFallback(product?.images);
+            const [image] = getProductImagesWithFallback(product?.images);
             const displayPrice = getDisplayPrice(product);
-            const qty = product?.quantity ?? product?.stock ?? null;
+            const quantity = product?.quantity ?? product?.stock ?? null;
 
             return (
               <li
-                key={id || idx}
+                key={productId || index}
                 role="option"
                 aria-selected={false}
                 onClick={() => handleSelect(product)}
-                className="
-                  flex items-center gap-3 px-4 py-3 cursor-pointer
-                  hover:bg-indigo-500/10 active:bg-indigo-500/20
-                  transition-colors duration-150
-                  border-b border-white/5 last:border-b-0 group
-                "
+                className="group flex cursor-pointer items-center gap-3 border-b border-white/5 px-4 py-3 transition-colors last:border-b-0 hover:bg-indigo-500/10 active:bg-indigo-500/20"
               >
-                {/* Thumbnail */}
-                <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 bg-slate-800 border border-white/5">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-white/5 bg-slate-800">
                   <img
-                    src={thumb}
+                    src={image}
                     alt={title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    onError={(e) => { e.currentTarget.src = '/placeholder-product.svg'; }}
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = '/placeholder-product.svg';
+                    }}
                   />
                 </div>
 
-                {/* Text */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-white transition-colors group-hover:text-indigo-300">
                     {title}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="mt-0.5 flex items-center gap-2">
                     {displayPrice && (
                       <span className="text-xs text-slate-400">{displayPrice}</span>
                     )}
-                    {qty !== null && (
+                    {quantity !== null && (
                       <>
-                        <span className="text-slate-700 text-xs">·</span>
-                        <span className={`text-[11px] font-semibold ${stockColor(qty)}`}>
-                          {qty <= 0 ? 'Depleted' : `${qty} in stock`}
+                        <span className="text-xs text-slate-700">-</span>
+                        <span className={`text-[11px] font-semibold ${stockColor(quantity)}`}>
+                          {quantity <= 0 ? 'Depleted' : `${quantity} in stock`}
                         </span>
                       </>
                     )}
                   </div>
                 </div>
-
-                {/* Chevron */}
-                <svg
-                  className="text-slate-600 group-hover:text-indigo-400 transition-colors shrink-0"
-                  width="14" height="14" viewBox="0 0 24 24"
-                  fill="none" stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
               </li>
             );
           })}
@@ -215,4 +194,4 @@ function SellerSearchBar({ className = '' }) {
   );
 }
 
-export default memo(SellerSearchBar);
+export default SellerSearchBar;

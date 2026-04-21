@@ -1,71 +1,67 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
- * useProductSearch — generic debounced search hook.
- *
- * Accepts an async `fetchFn(query)` and a debounce delay (default 300 ms).
- * Returns query state, results, loading flag, and a clear helper.
- *
- * @param {(query: string) => Promise<any[]>} fetchFn  - async function to call for suggestions
- * @param {number} [delay=300]                          - debounce delay in milliseconds
+ * Shared search hook with a simple debounce flow.
+ * Input changes -> wait -> fetch suggestions -> update results.
  */
 export function useProductSearch(fetchFn, delay = 300) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Stable ref to avoid stale closures in the debounce timer.
-  const fetchFnRef = useRef(fetchFn);
-  useEffect(() => {
-    fetchFnRef.current = fetchFn;
-  }, [fetchFn]);
-
-  // Timer ref so we can clear it on each keystroke.
-  const timerRef = useRef(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const trimmed = query.trim();
+    const trimmedQuery = query.trim();
 
-    // Clear previous results immediately when the input is cleared.
-    if (!trimmed) {
+    // When the input is empty, clear the old results right away.
+    if (!trimmedQuery) {
       setResults([]);
-      setError(null);
-      return;
+      setError('');
+      setIsSearching(false);
+      return undefined;
     }
 
-    // Cancel the pending timer whenever the query changes.
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
+    let isCancelled = false;
 
-    // Schedule a new fetch after `delay` ms of silence.
-    timerRef.current = setTimeout(async () => {
+    // Wait a short time before searching so we do not call the API on every key press.
+    const timeoutId = window.setTimeout(async () => {
       setIsSearching(true);
-      setError(null);
+      setError('');
+
       try {
-        const data = await fetchFnRef.current(trimmed);
-        setResults(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setError(err?.response?.data?.message || err?.message || 'Search failed');
-        setResults([]);
+        const data = await fetchFn(trimmedQuery);
+
+        if (!isCancelled) {
+          setResults(Array.isArray(data) ? data : []);
+        }
+      } catch (requestError) {
+        if (!isCancelled) {
+          setResults([]);
+          setError(
+            requestError?.response?.data?.message
+              || requestError?.message
+              || 'Search failed',
+          );
+        }
       } finally {
-        setIsSearching(false);
+        if (!isCancelled) {
+          setIsSearching(false);
+        }
       }
     }, delay);
 
-    // Cleanup on unmount or next effect run.
+    // Remove the pending timer if the user keeps typing or the component unmounts.
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      isCancelled = true;
+      window.clearTimeout(timeoutId);
     };
-  }, [query, delay]);
+  }, [delay, fetchFn, query]);
 
-  /** Clears the query and results (e.g. after a suggestion is selected). */
+  // Reset everything after clear button click or after selecting a suggestion.
   const clearSearch = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
     setQuery('');
     setResults([]);
-    setError(null);
+    setError('');
     setIsSearching(false);
   }, []);
 
