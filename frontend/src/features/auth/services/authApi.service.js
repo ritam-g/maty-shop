@@ -4,19 +4,11 @@ import axios from "axios";
  * Base URL for authentication API endpoints
  * Uses environment variable VITE_BASE_URL if available, otherwise defaults to local development URL
  */
-const baseURL = import.meta.env.VITE_BASE_URL
-    ? `${import.meta.env.VITE_BASE_URL}/auth`
-    : `http://localhost:3000/api/auth`
-
-
-/**
- * Axios instance configured for authentication API calls
- * Automatically includes cookies in requests (withCredentials: true)
- */
 const authApi = axios.create({
-    baseURL:'/api/auth',
+    baseURL: `${import.meta.env.VITE_API_BASE_URL}/auth`,
     withCredentials: true
 })
+
 
 /**
  * Registers a new user

@@ -1,9 +1,10 @@
 import axios from 'axios'
 
 const cartApi = axios.create({
-    baseURL: '/api/cart',
+    baseURL: `${import.meta.env.VITE_API_BASE_URL}/cart`,
     withCredentials: true
 })
+
 
 /**
  * Function Name: addToCart

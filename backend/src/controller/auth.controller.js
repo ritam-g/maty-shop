@@ -1,3 +1,4 @@
+import { AppConfig } from "../config/config.js"
 import { getMeUser, loginService, loginWithGoogle, registerService } from "../services/auth.service.js"
 import { generateToken } from "../utils/tokenService.js"
 
@@ -94,10 +95,17 @@ export const googleController = async (req, res, next) => {
 
         res.cookie('token', token, { httpOnly: true })
         if(user.role !=='buyer'){
-            res.redirect('http://localhost:5173/seller/dashboard')
+            // its only for render time if you are ruuing in local you can cange in url
+            if(true){
+                res.redirect(`${AppConfig.FRONTEND_URL}/seller/dashboard`)
+            }
+            
         }
         else{
-            res.redirect('http://localhost:5173/')
+            if(true){
+                res.redirect(`${AppConfig.FRONTEND_URL}`)
+            }
+            
         }
         
     } catch (error) {
