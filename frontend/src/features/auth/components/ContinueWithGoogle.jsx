@@ -11,7 +11,8 @@ function ContinueWithGoogle() {
     return (
         <>
             <a
-                href={`${import.meta.env.VITE_API_BASE_URL}/auth/google`}
+                href={`https://maty-shop.onrender.com/api/auth/google`}
+
 
                 className="flex items-center justify-center gap-3 w-full max-w-xs mx-auto mt-4
     border border-gray-300 rounded-lg px-4 py-2 

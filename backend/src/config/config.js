@@ -16,7 +16,6 @@ if (process.env.CLIENT_SECRET === undefined) throw new Error('CLIENT_SECRET is n
 if (process.env.IMAGEKIT_PUBLIC_KEY === undefined) throw new Error('IMAGEKIT_PUBLIC_KEY is not defined')
 if (process.env.IMAGEKIT_PRIVATE_KEY === undefined) throw new Error('IMAGEKIT_PRIVATE_KEY is not defined')
 if (process.env.IMAGEKIT_URL_ENDPOINT === undefined) throw new Error('IMAGEKIT_URL_ENDPOINT is not defined')
-if(process.env.FRONTEND_URL === undefined) throw new Error('FRONTEND_URL is not defined')
 
 
 /**
@@ -32,6 +31,7 @@ if(process.env.FRONTEND_URL === undefined) throw new Error('FRONTEND_URL is not 
  * @property {string} IMAGEKIT_PUBLIC_KEY - ImageKit public API key
  * @property {string} IMAGEKIT_PRIVATE_KEY - ImageKit private API key
  * @property {string} IMAGEKIT_URL_ENDPOINT - ImageKit URL endpoint for image delivery
+ * @property {string} FRONTEND_URL - Hardcoded production URL for Render
  */
 export const AppConfig = {
     PORT: process.env.PORT,
@@ -44,5 +44,6 @@ export const AppConfig = {
     IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
     IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
     IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
-    FRONTEND_URL: process.env.FRONTEND_URL
+    FRONTEND_URL: 'https://maty-shop.onrender.com'
 }
+

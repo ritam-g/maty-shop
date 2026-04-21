@@ -27,7 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration - allowing local Vite and production URL
 const allowedOrigins = [
-    AppConfig.FRONTEND_URL,
     'http://localhost:5173',
     'http://localhost:5174',
     'https://maty-shop.onrender.com'
