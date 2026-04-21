@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
 import { motion as Motion } from "framer-motion";
-import { Menu, Search, ShoppingBag, User } from "lucide-react";
+import { Menu, ShoppingBag, User } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { normalizeCartItems } from "../../../cart/utils/cart.utils.js";
 import Container from "./Container";
+import GlobalSearchBar from "../product/GlobalSearchBar";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -45,9 +46,8 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-400 hover:text-white transition-colors">
-              <Search size={20} />
-            </button>
+            {/* GlobalSearchBar replaces the static search icon */}
+            <GlobalSearchBar />
             <button className="p-2 text-slate-400 hover:text-white transition-colors">
               <User size={20} />
             </button>

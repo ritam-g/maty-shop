@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.middleware.js'
-import { addProductVariant, createProduct, getAllProductController, getProductByIdController, getUserProduct } from '../controller/product.controller.js'
+import { addProductVariant, createProduct, getAllProductController, getProductByIdController, getUserProduct, searchProducts, searchSellerProducts } from '../controller/product.controller.js'
 import { upload } from '../middleware/upload.middleware.js'
 
 /**
@@ -31,6 +31,23 @@ productRouter.post('/create', upload.array('images', 5), authMiddleware, createP
  * @access Private (requires authentication)
  */
 productRouter.get('/getProduct', authMiddleware, getUserProduct)
+
+/**
+ * GET /product/search
+ * Global product search
+ * @description Performs case-insensitive partial match on title, description, and variant attributes
+ * 
+ * @route GET /api/product/search
+ * @param {string} q - Partial search text
+ * @returns {Object} Search results
+ */
+productRouter.get('/search', searchProducts)
+
+/**
+ * GET /product/seller/search
+ * Seller-specific product search
+ */
+productRouter.get('/seller/search', authMiddleware, searchSellerProducts)
 
 /**
  * GET /product/:id

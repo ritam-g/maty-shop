@@ -28,5 +28,28 @@ export async function getProductById(id) {
 export async function addVearientProduct(payload, productId) {
     const response = await productApi.post(`/${productId}/variants`, payload)
     return response.data
-
 }
+
+/**
+ * Search across all products (buyer-facing global search).
+ * Returns an array of matching product objects.
+ * @param {string} query - partial search text
+ */
+export async function searchProducts(query) {
+    const response = await productApi.get('/search', { params: { q: query } })
+    // Backend returns { products: [...] } — normalise to plain array.
+    return Array.isArray(response.data?.products)
+        ? response.data.products
+        : Array.isArray(response.data) ? response.data : []
+}
+
+/**
+ * Search only the authenticated seller's products.
+ * @param {string} query - partial search text
+ */
+export async function searchSellerProducts(query) {
+    const response = await productApi.get('/seller/search', { params: { q: query } })
+    return Array.isArray(response.data?.products)
+        ? response.data.products
+        : Array.isArray(response.data) ? response.data : []
+}
