@@ -99,7 +99,7 @@ function EmptyCartState({ onStartShopping }) {
 function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { handleAddToCart, handleGetCart } = useCart();
+  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity } = useCart();
   const { items, isLoading, error } = useSelector((state) => state.cart);
 
   const [pendingMap, setPendingMap] = useState({});
@@ -165,18 +165,57 @@ function Cart() {
     }
   }, [cartItems, dispatch, handleAddToCart, pendingMap, setPending, showToast]);
 
-  const handleDecrease = useCallback((item) => {
+  const handleDecrease = useCallback(async (item) => {
     const key = getCartItemKey(item);
+    if (!key || pendingMap[key]) return;
+
     const currentQty = Math.max(1, Number(item?.quantity || 1));
     if (currentQty <= 1) return;
-    dispatch(setItemQuantity({ key, quantity: currentQty - 1 }));
-  }, [dispatch]);
 
-  const handleRemove = useCallback((item) => {
+    const productId = getProductIdFromItem(item);
+    const variantId = getVariantIdFromItem(item);
+    if (!productId || !variantId) {
+      showToast("error", "Variant is missing for this item.");
+      return;
+    }
+
+    const snapshot = cartItems.map((entry) => ({ ...entry }));
+    dispatch(setItemQuantity({ key, quantity: currentQty - 1 }));
+    setPending(key, true);
+
+    try {
+      await handleUpdateCartItemQuantity({ productId, variantId, quantity: currentQty - 1 });
+    } catch (requestError) {
+      dispatch(restoreItems(snapshot));
+      showToast("error", requestError?.response?.data?.message || "Unable to update quantity.");
+    } finally {
+      setPending(key, false);
+    }
+  }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
+
+  const handleRemove = useCallback(async (item) => {
     const key = getCartItemKey(item);
+    if (!key || pendingMap[key]) return;
+
+    const productId = getProductIdFromItem(item);
+    const variantId = getVariantIdFromItem(item);
+
+    const snapshot = cartItems.map((entry) => ({ ...entry }));
     dispatch(removeItem({ key }));
-    showToast("success", "Item removed from cart.");
-  }, [dispatch, showToast]);
+    setPending(key, true);
+
+    try {
+      if (productId && variantId) {
+        await handleUpdateCartItemQuantity({ productId, variantId, quantity: 0 });
+      }
+      showToast("success", "Item removed from cart.");
+    } catch (requestError) {
+      dispatch(restoreItems(snapshot));
+      showToast("error", requestError?.response?.data?.message || "Unable to remove item.");
+    } finally {
+      setPending(key, false);
+    }
+  }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
 
   const handleCheckout = useCallback(() => {
     showToast("success", "Checkout integration is ready for your payment step.");

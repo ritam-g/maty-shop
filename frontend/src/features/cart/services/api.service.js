@@ -9,7 +9,13 @@ export async function addToCart({ productId, variantId, quantity = 1 }) {
     const response = await cartApi.get(`/add/${productId}/${variantId}/${quantity}`)
     return response.data
 }
+
 export async function getCart() {
     const response = await cartApi.get('/get')
+    return response.data
+}
+
+export async function updateCartItemQuantity({ productId, variantId, quantity }) {
+    const response = await cartApi.patch(`/item/${productId}/${variantId}/${quantity}`)
     return response.data
 }

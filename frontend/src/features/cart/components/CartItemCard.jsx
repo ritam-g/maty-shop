@@ -21,8 +21,6 @@ function CartItemCard({ item, isPending = false, onIncrease, onDecrease, onRemov
 
   const cannotDecrease = isPending || quantity <= 1;
   const cannotIncrease = isPending || (Number.isFinite(stockLimit) && quantity >= stockLimit);
-  //getting svg 
-  console.log(getPrimaryImage(product));
   
   return (
     <Motion.article

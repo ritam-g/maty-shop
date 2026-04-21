@@ -214,6 +214,10 @@ function ProductDetailPage() {
   }, [id, retryCount]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
+
+  useEffect(() => {
     if (!toast) return undefined;
     const timer = window.setTimeout(() => setToast(null), 2400);
     return () => window.clearTimeout(timer);

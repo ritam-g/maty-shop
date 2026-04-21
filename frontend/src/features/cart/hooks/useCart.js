@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { addToCart, getCart } from "../services/api.service.js";
+import { addToCart, getCart, updateCartItemQuantity } from "../services/api.service.js";
 import { clearError, setError, setItems, setLoading } from "../state/cart.slice.js";
 
 export const useCart = () => {
@@ -27,18 +27,26 @@ export const useCart = () => {
     dispatch(clearError());
     try {
       const response = await addToCart({ productId, variantId, quantity });
-
-      if (Array.isArray(response?.cart?.items)) {
-        dispatch(setItems(response.cart.items));
-        return response;
-      }
-
-      // Backend returns `updatedCart` for existing entries; refresh the canonical cart payload.
-      const refreshed = await getCart();
-      dispatch(setItems(refreshed?.cart?.items || []));
-      return refreshed;
+      dispatch(setItems(response?.cart?.items || []));
+      return response;
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || "Failed to add item to cart";
+      dispatch(setError(message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }, [dispatch]);
+
+  const handleUpdateCartItemQuantity = useCallback(async ({ productId, variantId, quantity }) => {
+    dispatch(setLoading(true));
+    dispatch(clearError());
+    try {
+      const response = await updateCartItemQuantity({ productId, variantId, quantity });
+      dispatch(setItems(response?.cart?.items || []));
+      return response;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || "Failed to update cart item";
       dispatch(setError(message));
       throw error;
     } finally {
@@ -49,5 +57,6 @@ export const useCart = () => {
   return {
     handleGetCart,
     handleAddToCart,
+    handleUpdateCartItemQuantity,
   };
 };
