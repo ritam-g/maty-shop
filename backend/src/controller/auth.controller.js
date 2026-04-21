@@ -96,15 +96,15 @@ export const googleController = async (req, res, next) => {
         res.cookie('token', token, { httpOnly: true })
         if(user.role !=='buyer'){
             // its only for render time if you are ruuing in local you can cange in url
-            if(true){
-                res.redirect(`${AppConfig.FRONTEND_URL}/seller/dashboard`)
-            }
+            
+                res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
+            
             
         }
         else{
-            if(true){
-                res.redirect(`${AppConfig.FRONTEND_URL}`)
-            }
+            
+                res.redirect(`https://maty-shop.onrender.com`)
+            
             
         }
         

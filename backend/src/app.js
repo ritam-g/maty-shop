@@ -29,7 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
     AppConfig.FRONTEND_URL,
     'http://localhost:5173',
-    'http://localhost:5174'
+    'http://localhost:5174',
+    'https://maty-shop.onrender.com'
 ].filter(Boolean);
 
 app.use(cors({
@@ -58,9 +59,8 @@ const getGoogleCallbackURL = () => {
     if (process.env.GOOGLE_CALLBACK_URL) {
         return process.env.GOOGLE_CALLBACK_URL;
     }
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const host = process.env.APP_HOST || 'localhost:3000';
-    return `${protocol}://${host}/api/auth/google/callback`;
+
+    return `https://maty-shop.onrender.com/api/auth/google/callback`;
 };
 
 passport.use(new GoogleStrategy({
