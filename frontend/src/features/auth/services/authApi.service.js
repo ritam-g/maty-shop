@@ -5,7 +5,7 @@ import axios from "axios";
  * Uses environment variable VITE_BASE_URL if available, otherwise defaults to local development URL
  */
 const authApi = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/auth`,
+    baseURL: `https://maty-shop.onrender.com/api/auth`,
     withCredentials: true
 })
 

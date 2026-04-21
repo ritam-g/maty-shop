@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const productApi = axios.create({
-    baseURL: `${import.meta.env.VITE_API_BASE_URL}/product`,
+    baseURL: `https://maty-shop.onrender.com/api/product`,
     withCredentials: true
 })
 
@@ -53,4 +53,4 @@ export async function searchSellerProducts(query) {
     return Array.isArray(response.data?.products)
         ? response.data.products
         : Array.isArray(response.data) ? response.data : []
-}
+}
