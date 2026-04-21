@@ -33,17 +33,23 @@ if (process.env.IMAGEKIT_URL_ENDPOINT === undefined) throw new Error('IMAGEKIT_U
  * @property {string} IMAGEKIT_URL_ENDPOINT - ImageKit URL endpoint for image delivery
  * @property {string} FRONTEND_URL - Hardcoded production URL for Render
  */
+const sanitizeEnv = (val) => {
+    if (typeof val !== 'string') return val;
+    return val.replace(/^["']|["']$/g, '').trim();
+};
+
 export const AppConfig = {
-    PORT: process.env.PORT,
-    MONGO_URL: process.env.MONGO_URL,
-    JWT_SECRET: process.env.JWT_SECRET,
-    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
-    React_APP_BASE_URL: process.env.REACT_APP_BASE_URL,
-    CLIENT_ID: process.env.CLIENT_ID,
-    CLIENT_SECRET: process.env.CLIENT_SECRET,
-    IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
-    IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
-    IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
+    PORT: sanitizeEnv(process.env.PORT),
+    MONGO_URL: sanitizeEnv(process.env.MONGO_URL),
+    JWT_SECRET: sanitizeEnv(process.env.JWT_SECRET),
+    JWT_EXPIRES_IN: sanitizeEnv(process.env.JWT_EXPIRES_IN),
+    React_APP_BASE_URL: sanitizeEnv(process.env.REACT_APP_BASE_URL),
+    CLIENT_ID: sanitizeEnv(process.env.CLIENT_ID),
+    CLIENT_SECRET: sanitizeEnv(process.env.CLIENT_SECRET),
+    IMAGEKIT_PUBLIC_KEY: sanitizeEnv(process.env.IMAGEKIT_PUBLIC_KEY),
+    IMAGEKIT_PRIVATE_KEY: sanitizeEnv(process.env.IMAGEKIT_PRIVATE_KEY),
+    IMAGEKIT_URL_ENDPOINT: sanitizeEnv(process.env.IMAGEKIT_URL_ENDPOINT),
     FRONTEND_URL: 'https://maty-shop.onrender.com'
 }
+
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import cokkieParser from 'cookie-parser'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { globalErrorHandler } from './middleware/globalErrorHandler.js';
 import authRouter from './routes/auth.route.js';
@@ -10,6 +10,8 @@ import productRouter from './routes/product.route.js';
 import cartRouter from './routes/cart.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
+
 
 // Get the directory name for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -50,15 +52,20 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(cokkieParser());
+app.use(cookieParser());
 app.use(passport.initialize());
 
 /**
  * Health check endpoint for Render
  */
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Server is running' });
+    res.status(200).json({ 
+        status: 'OK', 
+        message: 'Server is running',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    });
 });
+
 
 // Serve static files from the public folder (React build)
 app.use(express.static(path.join(__dirname, '../public')));
