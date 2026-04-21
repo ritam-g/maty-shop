@@ -2,12 +2,13 @@ import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import useAuth from '../hooks/useAuth';// Note: keeping hooks in features/auth as requested
 import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
 import AuthLayout from '../components/AuthLayout';
 import ContinueWithGoogle from '../components/ContinueWithGoogle';
+import { clearError } from '../store/auth.slice.js';
 
 /**
  * Login page component for user authentication
@@ -20,6 +21,7 @@ import ContinueWithGoogle from '../components/ContinueWithGoogle';
 function Login() {
   const { handleLogin } = useAuth();
   const { isLoading, error } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Optimized useRef for zero-re-render form state management
@@ -27,9 +29,15 @@ function Login() {
   const passwordRef = useRef(null);
 
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitted(true);
 
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
@@ -43,6 +51,8 @@ function Login() {
       setFormErrors(errors);
       return;
     }
+
+    setFormErrors({});
 
     try {
       const user = await handleLogin({ email, password });
@@ -80,7 +90,11 @@ function Login() {
             type="email"
             name="email"
             icon={Mail}
-            error={formErrors.email}
+            error={isSubmitted ? formErrors.email : undefined}
+            onChange={() => {
+              if (!isSubmitted) return;
+              setFormErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             required
           />
 
@@ -91,7 +105,11 @@ function Login() {
               type="password"
               name="password"
               icon={Lock}
-              error={formErrors.password}
+              error={isSubmitted ? formErrors.password : undefined}
+              onChange={() => {
+                if (!isSubmitted) return;
+                setFormErrors((prev) => ({ ...prev, password: undefined }));
+              }}
               required
             />
             <div className="flex justify-end pt-2">
@@ -103,7 +121,7 @@ function Login() {
         </div>
 
         <AnimatePresence>
-          {error && (
+          {isSubmitted && error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}

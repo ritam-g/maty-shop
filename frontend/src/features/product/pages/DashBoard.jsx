@@ -48,10 +48,12 @@ const EmptyState = () => (
 const DashBoard = () => {
   const { getProductHandeler } = UseProduct();
   const { product, isLoading, error } = useSelector((state) => state.product);
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
-    getProductHandeler();
-  }, [getProductHandeler]);
+    if (!user || user.role !== 'seller') return;
+    getProductHandeler({ force: true });
+  }, [getProductHandeler, user]);
 
   const productsList = useMemo(() => (
     Array.isArray(product) ? product : (product?.products || [])

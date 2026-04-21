@@ -2,13 +2,14 @@ import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Phone, UserCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import useAuth from '../hooks/useAuth';
 import AuthSelect from '../components/AuthSelect';
 import AuthButton from '../components/AuthButton';
 import AuthInput from '../components/AuthInput';
 import AuthLayout from '../components/AuthLayout';
 import ContinueWithGoogle from '../components/ContinueWithGoogle';
+import { clearError } from '../store/auth.slice.js';
 
 /**
  * Registration page component for new user sign-up
@@ -21,6 +22,7 @@ import ContinueWithGoogle from '../components/ContinueWithGoogle';
 function Register() {
   const { handleRegister } = useAuth();
   const { isLoading, error } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Optimized useRef for zero-re-render form state management
@@ -31,9 +33,15 @@ function Register() {
   const roleRef = useRef(null);
 
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitted(true);
 
     const name = nameRef.current.value;
     const email = emailRef.current.value;
@@ -58,6 +66,7 @@ function Register() {
       return;
     }
 
+    setFormErrors({});
     const formData = { name, email, password, role, contact };
     const success = await handleRegister(formData);
     if (success) {
@@ -83,7 +92,11 @@ function Register() {
             label="Full Name"
             name="name"
             icon={User}
-            error={formErrors.name}
+            error={isSubmitted ? formErrors.name : undefined}
+            onChange={() => {
+              if (!isSubmitted) return;
+              setFormErrors((prev) => ({ ...prev, name: undefined }));
+            }}
             required
           />
 
@@ -93,7 +106,11 @@ function Register() {
             type="email"
             name="email"
             icon={Mail}
-            error={formErrors.email}
+            error={isSubmitted ? formErrors.email : undefined}
+            onChange={() => {
+              if (!isSubmitted) return;
+              setFormErrors((prev) => ({ ...prev, email: undefined }));
+            }}
             required
           />
 
@@ -104,7 +121,11 @@ function Register() {
               name="contact"
               type="tel"
               icon={Phone}
-              error={formErrors.contact}
+              error={isSubmitted ? formErrors.contact : undefined}
+              onChange={() => {
+                if (!isSubmitted) return;
+                setFormErrors((prev) => ({ ...prev, contact: undefined }));
+              }}
               required
             />
 
@@ -124,7 +145,11 @@ function Register() {
             type="password"
             name="password"
             icon={Lock}
-            error={formErrors.password}
+            error={isSubmitted ? formErrors.password : undefined}
+            onChange={() => {
+              if (!isSubmitted) return;
+              setFormErrors((prev) => ({ ...prev, password: undefined }));
+            }}
             required
           />
         </div>
@@ -149,7 +174,7 @@ function Register() {
         </div>
 
         <AnimatePresence>
-          {error && (
+          {isSubmitted && error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}

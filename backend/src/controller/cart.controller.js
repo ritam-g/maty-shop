@@ -15,6 +15,16 @@ const populateCart = async (userId) => (
 );
 
 /**
+ * Function Name: getAuthenticatedUserId
+ * Purpose: Normalize authenticated user id regardless of whether token payload uses id or _id.
+ * Params:
+ * - user: req.user payload
+ * Returns:
+ * - Normalized user id string or null
+ */
+const getAuthenticatedUserId = (user) => user?.id || user?._id || null;
+
+/**
  * Function Name: findVariant
  * Purpose: Find the requested variant inside a product document.
  * Params:
@@ -187,13 +197,17 @@ export async function updateCartItemQuantityController(req, res, next) {
  * - JSON response containing the cart document
  */
 export const getCartController = async (req, res) => {
-  const user = req.user;
+  const userId = getAuthenticatedUserId(req.user);
 
-  let cart = await populateCart(user._id);
+  if (!userId) {
+    throw new AppError("Unauthorized", 401);
+  }
+
+  let cart = await populateCart(userId);
 
   if (!cart) {
-    await cartModel.create({ user: user._id, items: [] });
-    cart = await populateCart(user._id);
+    await cartModel.create({ user: userId, items: [] });
+    cart = await populateCart(userId);
   }
 
   return res.status(200).json({
