@@ -97,7 +97,7 @@ app.use('/api/product', productRouter);
 app.use('/api/cart', cartRouter);
 
 // Fallback route for React Router - serve index.html for all non-API routes
-app.get('*', (req, res) => {
+app.get('*any', (req, res) => {
     // If it's an API route that wasn't matched, don't serve index.html
     if (req.originalUrl.startsWith('/api')) {
         return res.status(404).json({ message: 'API endpoint not found' });
