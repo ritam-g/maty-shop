@@ -21,6 +21,12 @@ const __dirname = path.dirname(__filename);
  */
 const app = express();
 
+/**
+ * Trust proxy for Render load balancer
+ * Required for rate limiting and secure cookies
+ */
+app.set('trust proxy', 1);
+
 // Middleware configuration
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,13 +39,26 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-    origin: 'https://maty-shop.onrender.com',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true
 }));
 
 app.use(cokkieParser());
 app.use(passport.initialize());
+
+/**
+ * Health check endpoint for Render
+ */
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
 
 // Serve static files from the public folder (React build)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -71,7 +90,7 @@ app.use('/api/product', productRouter);
 app.use('/api/cart', cartRouter);
 
 // Fallback route for React Router - serve index.html for all non-API routes
-app.get('*any', (req, res) => {
+app.get('*', (req, res) => {
     // If it's an API route that wasn't matched, don't serve index.html
     if (req.originalUrl.startsWith('/api')) {
         return res.status(404).json({ message: 'API endpoint not found' });
