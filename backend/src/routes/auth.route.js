@@ -32,7 +32,7 @@ authRouter.post("/login", authLimiter,loginValidator, loginController);
  * Retrieves the current authenticated user's information
  * TODO: Implement this endpoint with proper authentication middleware
  */
-authRouter.get("/me", authLimiter, authMiddleware, getMeController);
+authRouter.get("/me",  authMiddleware, getMeController);
 
 /**
  * GET /auth/google
@@ -40,7 +40,7 @@ authRouter.get("/me", authLimiter, authMiddleware, getMeController);
  * Redirects user to Google's authentication page
  * Uses passport.authenticate middleware with Google strategy
  */
-authRouter.get('/google',authLimiter, passport.authenticate('google', { scope: ['email', 'profile'] }));
+authRouter.get('/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
 /**
  * GET /auth/google/callback

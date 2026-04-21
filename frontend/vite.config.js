@@ -1,10 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import path from 'path'
+
 // https://vite.dev/config/
 export default defineConfig({
-
   plugins: [react(), tailwindcss()],
+  
+  // Public folder for static assets
+  publicDir: 'public',
+  
+  // Build output configuration
+  build: {
+    outDir: 'dist', // Output to dist folder in frontend
+    emptyOutDir: true, // Clear before building
+  },
+  
   server: {
     proxy: {
       '/api': {
