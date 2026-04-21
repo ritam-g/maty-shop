@@ -1,12 +1,13 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import VariantAttributeDisplay from "./VariantAttributeDisplay";
 
 function ProductDetailContent({
   description,
   highlights,
   variantOptions,
-  selectedVariantId,
-  onVariantSelect,
+  selectedVariant,
+  onVariantChange,
 }) {
   return (
     <>
@@ -60,13 +61,13 @@ function ProductDetailContent({
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {variantOptions.map((entry) => {
-              const isSelected = entry.id === selectedVariantId;
+              const isSelected = entry.id === selectedVariant?.id;
 
               return (
                 <button
                   key={entry.id}
                   type="button"
-                  onClick={() => onVariantSelect(entry.id)}
+                  onClick={() => onVariantChange(entry)}
                   className={`overflow-hidden rounded-[1.75rem] border text-left transition-all duration-300 ${
                     isSelected
                       ? "border-indigo-400 bg-slate-900/90 shadow-[0_0_0_1px_rgba(129,140,248,0.35)]"
@@ -105,6 +106,18 @@ function ProductDetailContent({
                         {Number.isFinite(entry.remaining) ? `${Math.max(0, entry.remaining)} left` : "Ready"}
                       </p>
                     </div>
+
+                    {entry.attributes.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {entry.attributes.slice(0, 2).map(([key, value]) => (
+                          <VariantAttributeDisplay
+                            key={`${entry.id}-${key}`}
+                            name={key}
+                            value={value}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </button>
               );

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -92,7 +92,7 @@ const getProductBadge = (product) => (
 );
 
 const buildHighlights = ({ product, selectedVariant, stockMeta, stockText }) => {
-  const attributes = getVariantAttributes(selectedVariant);
+  const attributes = selectedVariant?.attributes || [];
   const description = product?.description || "";
   const summarySentences = description
     .split(".")
@@ -155,11 +155,9 @@ function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
-  const [selectedVariantId, setSelectedVariantId] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [toast, setToast] = useState(null);
-
-  const selectedVariantRef = useRef("");
 
   useEffect(() => {
     let isCancelled = false;
@@ -259,6 +257,7 @@ function ProductDetailPage() {
         id: variantId,
         label: getVariantLabel(variant, index),
         variant,
+        attributes: getVariantAttributes(variant),
         remaining,
         isAvailable: !Number.isFinite(stock) || remaining > 0,
         previewImage,
@@ -277,28 +276,23 @@ function ProductDetailPage() {
 
   useEffect(() => {
     if (!hasVariants) {
-      selectedVariantRef.current = "";
-      setSelectedVariantId("");
+      setSelectedVariant(null);
       return;
     }
 
-    setSelectedVariantId((previousId) => {
-      const stillExists = variantOptions.some((entry) => entry.id === previousId);
-      const nextId = stillExists ? previousId : firstAvailableVariantId;
-      selectedVariantRef.current = nextId;
-      return nextId;
+    setSelectedVariant((previousVariant) => {
+      const previousId = previousVariant?.id || "";
+      return (
+        variantOptions.find((entry) => entry.id === previousId)
+        || variantOptions.find((entry) => entry.id === firstAvailableVariantId)
+        || null
+      );
     });
   }, [firstAvailableVariantId, hasVariants, productId, variantOptions]);
 
-  const selectedVariantOption = useMemo(
-    () => variantOptions.find((entry) => entry.id === selectedVariantId) || null,
-    [selectedVariantId, variantOptions],
-  );
-  const selectedVariant = selectedVariantOption?.variant || null;
-
   const selectedVariantImages = useMemo(
-    () => getValidProductImages(selectedVariant?.images),
-    [selectedVariant?.images],
+    () => getValidProductImages(selectedVariant?.variant?.images),
+    [selectedVariant?.variant?.images],
   );
 
   const heroImages = useMemo(() => {
@@ -327,13 +321,13 @@ function ProductDetailPage() {
   useEffect(() => {
     if (selectedVariantImages.length === 0) return;
     setActiveImage((previous) => (selectedVariantImages.includes(previous) ? previous : selectedVariantImages[0]));
-  }, [selectedVariantImages, selectedVariantId]);
+  }, [selectedVariantImages, selectedVariant]);
 
-  const activePrice = selectedVariant?.price || product?.price;
+  const activePrice = selectedVariant?.variant?.price || product?.price;
   const activePriceAmount = getPriceAmount(activePrice);
   const activePriceCurrency = getPriceCurrency(activePrice, product?.currency);
 
-  const stockForSelection = selectedVariantOption?.remaining
+  const stockForSelection = selectedVariant?.remaining
     ?? (() => {
       const fallback = product?.stock ?? product?.quantity;
       if (fallback === undefined || fallback === null) return Number.POSITIVE_INFINITY;
@@ -342,7 +336,7 @@ function ProductDetailPage() {
   const stockMeta = useMemo(() => getStockMeta(stockForSelection), [stockForSelection]);
 
   const selectedVariantAttributes = useMemo(
-    () => getVariantAttributes(selectedVariant),
+    () => selectedVariant?.attributes || [],
     [selectedVariant],
   );
   const priceText = useMemo(
@@ -372,7 +366,7 @@ function ProductDetailPage() {
   };
 
   const resolveVariantForAdd = () => {
-    let variantId = selectedVariantRef.current || selectedVariantId || firstAvailableVariantId;
+    let variantId = selectedVariant?.id || firstAvailableVariantId;
     if (!variantId) return "";
 
     const selectedOption = variantOptions.find((entry) => entry.id === variantId);
@@ -380,21 +374,16 @@ function ProductDetailPage() {
 
     const fallbackId = variantOptions.find((entry) => entry.isAvailable)?.id || "";
     if (fallbackId) {
-      selectedVariantRef.current = fallbackId;
-      setSelectedVariantId(fallbackId);
+      setSelectedVariant(variantOptions.find((entry) => entry.id === fallbackId) || null);
       showToast("success", "Switched to an available variant.");
     }
     return fallbackId;
   };
 
-  const handleVariantSelect = (variantId) => {
-    selectedVariantRef.current = variantId;
-    setSelectedVariantId(variantId);
-
-    const entry = variantOptions.find((variantEntry) => variantEntry.id === variantId);
-    if (entry?.previewImage) {
-      setActiveImage(entry.previewImage);
-    }
+  const handleVariantChange = (variantEntry) => {
+    if (!variantEntry) return;
+    setSelectedVariant(variantEntry);
+    setActiveImage(variantEntry.previewImage || variantEntry.imageList?.[0] || PRODUCT_FALLBACK_IMAGE);
   };
 
   const handleAdd = async () => {
@@ -514,11 +503,10 @@ function ProductDetailPage() {
                   priceText={priceText}
                   stockMeta={stockMeta}
                   stockText={stockText}
-                  selectedVariantLabel={selectedVariantOption?.label || ""}
                   selectedVariantAttributes={selectedVariantAttributes}
                   variantOptions={variantOptions}
-                  selectedVariantId={selectedVariantId}
-                  onVariantSelect={handleVariantSelect}
+                  selectedVariant={selectedVariant}
+                  onVariantChange={handleVariantChange}
                   onAddToCart={handleAdd}
                   canAddToCart={canAddToCart}
                   isAdding={isAdding}
@@ -531,8 +519,8 @@ function ProductDetailPage() {
                   description={product.description || "No description available."}
                   highlights={pageHighlights}
                   variantOptions={variantOptions}
-                  selectedVariantId={selectedVariantId}
-                  onVariantSelect={handleVariantSelect}
+                  selectedVariant={selectedVariant}
+                  onVariantChange={handleVariantChange}
                 />
               </div>
 

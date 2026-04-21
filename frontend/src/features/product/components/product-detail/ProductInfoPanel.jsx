@@ -2,6 +2,7 @@ import React from "react";
 import { Loader2, ShieldCheck, ShoppingCart, Truck } from "lucide-react";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
+import VariantAttributeDisplay from "./VariantAttributeDisplay";
 
 function ProductInfoPanel({
   badgeText,
@@ -10,11 +11,10 @@ function ProductInfoPanel({
   priceText,
   stockMeta,
   stockText,
-  selectedVariantLabel,
   selectedVariantAttributes,
   variantOptions,
-  selectedVariantId,
-  onVariantSelect,
+  selectedVariant,
+  onVariantChange,
   onAddToCart,
   canAddToCart,
   isAdding,
@@ -71,28 +71,40 @@ function ProductInfoPanel({
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-500">
               Choose variant
             </p>
-            {selectedVariantLabel && (
-              <p className="text-xs font-semibold text-slate-400">{selectedVariantLabel}</p>
+            {selectedVariant?.label && (
+              <p className="text-xs font-semibold text-slate-400">{selectedVariant.label}</p>
             )}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {variantOptions.map((entry) => {
-              const isSelected = entry.id === selectedVariantId;
+              const isSelected = entry.id === selectedVariant?.id;
 
               return (
                 <button
                   key={entry.id}
                   type="button"
-                  onClick={() => onVariantSelect(entry.id)}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                  onClick={() => onVariantChange(entry)}
+                  className={`rounded-[1.4rem] border p-3 text-left transition-all duration-200 ${
                     isSelected
                       ? "border-indigo-300 bg-indigo-500/15 text-white shadow-[0_0_0_1px_rgba(129,140,248,0.35)]"
                       : "border-white/10 bg-slate-950/60 text-slate-300 hover:border-white/30 hover:text-white"
                   } ${!entry.isAvailable ? "cursor-not-allowed opacity-45" : ""}`}
                   disabled={!entry.isAvailable}
                 >
-                  {entry.label}
+                  <div className="flex items-center gap-3">
+                    <div className="h-14 w-14 overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                      <img
+                        src={entry.previewImage}
+                        alt={entry.label}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-white">{entry.label}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-400">{entry.priceText}</p>
+                    </div>
+                  </div>
                 </button>
               );
             })}
@@ -101,12 +113,12 @@ function ProductInfoPanel({
           {selectedVariantAttributes.length > 0 && (
             <div className="mt-5 flex flex-wrap gap-2">
               {selectedVariantAttributes.map(([key, value]) => (
-                <span
-                  key={`${selectedVariantId}-${key}`}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300"
-                >
-                  {key}: {value}
-                </span>
+                <VariantAttributeDisplay
+                  key={`${selectedVariant?.id || "variant"}-${key}`}
+                  name={key}
+                  value={value}
+                  emphasized
+                />
               ))}
             </div>
           )}

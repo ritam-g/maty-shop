@@ -10,7 +10,7 @@ function ProductImageGallery({ title, images, activeImage, onImageSelect }) {
   return (
     <section className="rounded-[2rem] border border-white/10 bg-slate-900/70 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] md:p-6">
       <div className="flex flex-col gap-4 lg:flex-row-reverse">
-        <div className="relative min-h-[22rem] flex-1 overflow-hidden rounded-[1.5rem] bg-[#0b1018] sm:min-h-[28rem] lg:min-h-[36rem]">
+        <div className="group relative min-h-[22rem] flex-1 overflow-hidden rounded-[1.5rem] bg-[#0b1018] sm:min-h-[28rem] lg:min-h-[36rem]">
           <AnimatePresence mode="wait">
             <Motion.img
               key={activeImage}
@@ -20,12 +20,16 @@ function ProductImageGallery({ title, images, activeImage, onImageSelect }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={IMAGE_TRANSITION}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
               onError={handleProductImageError}
             />
           </AnimatePresence>
 
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_38%),linear-gradient(180deg,rgba(15,23,42,0.05),rgba(2,6,23,0.5))]" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between p-4 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-300 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <span>Hover to zoom</span>
+            <span>{galleryImages.length} views</span>
+          </div>
         </div>
 
         {galleryImages.length > 1 && (
