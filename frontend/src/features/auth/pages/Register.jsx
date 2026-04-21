@@ -34,6 +34,7 @@ function Register() {
 
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   React.useEffect(() => {
     dispatch(clearError());
@@ -70,7 +71,10 @@ function Register() {
     const formData = { name, email, password, role, contact };
     const success = await handleRegister(formData);
     if (success) {
-      navigate("/");
+      setSuccessMessage("Registration successful");
+      window.setTimeout(() => {
+        navigate("/");
+      }, 900);
     }
   };
 
@@ -174,6 +178,16 @@ function Register() {
         </div>
 
         <AnimatePresence>
+          {successMessage && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0 }}
+              className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-4 rounded-xl text-center text-[10px] font-bold uppercase tracking-widest"
+            >
+              {successMessage}
+            </motion.div>
+          )}
           {isSubmitted && error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}

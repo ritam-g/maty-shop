@@ -57,7 +57,6 @@ function Login() {
     try {
       const user = await handleLogin({ email, password });
       if (!user) return;
-      console.log('helo');
       
       if (user.role === "seller") {
         navigate("/seller/dashboard");
@@ -68,10 +67,7 @@ function Login() {
         navigate("/");
         return;
       }
-    } catch (error) {
-      console.log(error);
-
-    }
+    } catch (error) {}
 
 
 

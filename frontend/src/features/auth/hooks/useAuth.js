@@ -3,6 +3,46 @@ import { useDispatch } from "react-redux"
 import { getMe, login, register } from "../services/authApi.service.js"
 import { clearError, setLoading, setUser, setError } from "../store/auth.slice.js"
 
+const mapAuthErrorMessage = (error, action = "login") => {
+    const status = error?.response?.status
+    const rawMessage = String(error?.response?.data?.message || error?.message || "").toLowerCase()
+
+    if (rawMessage.includes("verify") || rawMessage.includes("unverified")) {
+        return "Please verify your account"
+    }
+
+    if (status === 401 || status === 403 || rawMessage.includes("unauthorized")) {
+        return "Please login to continue"
+    }
+
+    if (action === "login") {
+        if (
+            rawMessage.includes("password is incorrect")
+            || rawMessage.includes("user not found")
+            || rawMessage.includes("invalid credential")
+            || rawMessage.includes("invalid email")
+        ) {
+            return "Invalid email or password"
+        }
+
+        return "Unable to login right now. Please try again."
+    }
+
+    if (action === "register") {
+        if (rawMessage.includes("already")) {
+            return "An account with this email or contact already exists"
+        }
+
+        if (rawMessage.includes("all fields are required")) {
+            return "Please fill all required fields"
+        }
+
+        return "Unable to create your account right now. Please try again."
+    }
+
+    return "Something went wrong. Please try again."
+}
+
 /**
  * Function Name: useAuth
  * Purpose: Wrap authentication API calls and sync user session state into Redux.
@@ -25,7 +65,7 @@ function useAuth() {
             dispatch(setUser(data.user))
             return data.user
         } catch (error) {
-            dispatch(setError(error?.response?.data?.message || error?.message || "Registration failed"))
+            dispatch(setError(mapAuthErrorMessage(error, "register")))
             return null
         } finally {
             dispatch(setLoading(false))
@@ -45,7 +85,7 @@ function useAuth() {
             dispatch(setUser(data.user))
             return data.user
         } catch (error) {
-            dispatch(setError(error?.response?.data?.message || error?.message || "Login failed"))
+            dispatch(setError(mapAuthErrorMessage(error, "login")))
             return null
         } finally {
             dispatch(setLoading(false))
@@ -74,7 +114,7 @@ function useAuth() {
                 return null
             }
 
-            dispatch(setError(error?.response?.data?.message || error?.message || "Failed to restore session"))
+            dispatch(setError("Session check failed. Please retry."))
             return null
         } finally {
             dispatch(setLoading(false))

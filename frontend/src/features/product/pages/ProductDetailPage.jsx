@@ -220,8 +220,13 @@ function ProductDetailPage() {
   }, [id, retryCount]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [id]);
+
+  useEffect(() => {
+    if (!selectedVariant?.id) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [selectedVariant?.id]);
 
   useEffect(() => {
     if (!toast) return undefined;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { handleProductImageError } from "../../utils/image.utils";
 
@@ -17,11 +17,49 @@ const IMAGE_TRANSITION = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
  */
 function ProductImageGallery({ title, images, activeImage, onImageSelect }) {
   const galleryImages = Array.isArray(images) && images.length > 0 ? images : [];
+  const hoverIntervalRef = useRef(null);
+  const hoverStartImageRef = useRef("");
+  const activeImageRef = useRef(activeImage);
+
+  useEffect(() => {
+    activeImageRef.current = activeImage;
+  }, [activeImage]);
+
+  const stopHoverCycle = () => {
+    if (!hoverIntervalRef.current) return;
+    window.clearInterval(hoverIntervalRef.current);
+    hoverIntervalRef.current = null;
+  };
+
+  const handleGalleryHoverStart = () => {
+    if (galleryImages.length <= 1 || hoverIntervalRef.current) return;
+
+    hoverStartImageRef.current = activeImage || galleryImages[0];
+    hoverIntervalRef.current = window.setInterval(() => {
+      const currentIndex = galleryImages.indexOf(activeImageRef.current);
+      const safeIndex = currentIndex < 0 ? 0 : currentIndex;
+      const nextIndex = (safeIndex + 1) % galleryImages.length;
+      onImageSelect(galleryImages[nextIndex]);
+    }, 780);
+  };
+
+  const handleGalleryHoverEnd = () => {
+    stopHoverCycle();
+    if (hoverStartImageRef.current) {
+      onImageSelect(hoverStartImageRef.current);
+    }
+  };
+
+  useEffect(() => () => stopHoverCycle(), []);
 
   return (
     <section className="rounded-[2rem] border border-white/10 bg-slate-900/70 p-4 shadow-[0_30px_80px_rgba(2,6,23,0.45)] md:p-6">
       <div className="flex flex-col gap-4 lg:flex-row-reverse">
-        <div className="group relative min-h-[22rem] flex-1 overflow-hidden rounded-[1.5rem] bg-[#0b1018] sm:min-h-[28rem] lg:min-h-[36rem]">
+        <div
+          className="group relative min-h-[22rem] flex-1 overflow-hidden rounded-[1.5rem] bg-[#0b1018] sm:min-h-[28rem] lg:min-h-[36rem]"
+          onMouseEnter={handleGalleryHoverStart}
+          onMouseLeave={handleGalleryHoverEnd}
+        >
           <AnimatePresence mode="wait">
             <Motion.img
               key={activeImage}
@@ -53,6 +91,7 @@ function ProductImageGallery({ title, images, activeImage, onImageSelect }) {
                   key={`${image}-${index}`}
                   type="button"
                   onClick={() => onImageSelect(image)}
+                  onMouseEnter={() => onImageSelect(image)}
                   className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border bg-slate-950/80 transition-all duration-300 lg:h-24 lg:w-24 ${
                     isActive
                       ? "border-indigo-400 shadow-[0_0_0_1px_rgba(129,140,248,0.35)]"
