@@ -242,8 +242,12 @@ function Cart() {
   }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
 
   const handleCheckout = useCallback(() => {
-    showToast("success", "Checkout integration is ready for your payment step.");
-  }, [showToast]);
+    if (totals.totalItems <= 0) {
+      showToast("error", "Your cart is empty.");
+      return;
+    }
+    navigate("/checkout");
+  }, [navigate, showToast, totals.totalItems]);
 
   return (
     <div className="min-h-screen bg-slate-950">
