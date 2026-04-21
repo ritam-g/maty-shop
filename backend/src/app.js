@@ -8,6 +8,12 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { AppConfig } from './config/config.js';
 import productRouter from './routes/product.route.js';
 import cartRouter from './routes/cart.route.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Express application instance
@@ -18,18 +24,37 @@ const app = express();
 // Middleware configuration
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+app.use(cors({
+    origin: `${AppConfig.FRONTEND_URL}`,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(cokkieParser()); // Parse cookies
 app.use(passport.initialize()); // Initialize Passport authentication
+
+// Serve static files from the public folder (React build)
+app.use(express.static(path.join(__dirname, '../public')));
 
 /**
  * Google OAuth Strategy Configuration
  * Handles authentication via Google OAuth 2.0
  * Receives access token, refresh token, and user profile from Google
  */
+const getGoogleCallbackURL = () => {
+    if (process.env.GOOGLE_CALLBACK_URL) {
+        return process.env.GOOGLE_CALLBACK_URL;
+    }
+    // For local development, default to localhost
+    // For production, this should be set via environment variable
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const host = process.env.APP_HOST || 'localhost:3000';
+    return `${protocol}://${host}/api/auth/google/callback`;
+};
+
 passport.use(new GoogleStrategy({
     clientID: AppConfig.CLIENT_ID,
     clientSecret: AppConfig.CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/api/auth/google/callback'
+    callbackURL: getGoogleCallbackURL()
 }, (accessToken, refreshToken, profile, done) => {
     console.log(profile);
     return done(null, profile)
@@ -45,7 +70,14 @@ passport.use(new GoogleStrategy({
 // Route configuration
 app.use('/api/auth', authRouter) // Authentication routes
 app.use('/api/product', productRouter) // Product routes
-app.use(`/api/cart`,cartRouter)
+app.use(`/api/cart`, cartRouter)
+
+// Fallback route for React Router - serve index.html for all non-API routes
+// This allows React Router to handle client-side routing on page refresh
+app.get('*any', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 // Global error handler middleware
 app.use(globalErrorHandler);
 

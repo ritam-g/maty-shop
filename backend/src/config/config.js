@@ -16,6 +16,7 @@ if (process.env.CLIENT_SECRET === undefined) throw new Error('CLIENT_SECRET is n
 if (process.env.IMAGEKIT_PUBLIC_KEY === undefined) throw new Error('IMAGEKIT_PUBLIC_KEY is not defined')
 if (process.env.IMAGEKIT_PRIVATE_KEY === undefined) throw new Error('IMAGEKIT_PRIVATE_KEY is not defined')
 if (process.env.IMAGEKIT_URL_ENDPOINT === undefined) throw new Error('IMAGEKIT_URL_ENDPOINT is not defined')
+if(process.env.FRONTEND_URL === undefined) throw new Error('FRONTEND_URL is not defined')
 
 
 /**
@@ -42,5 +43,6 @@ export const AppConfig = {
     CLIENT_SECRET: process.env.CLIENT_SECRET,
     IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
     IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
-    IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT
+    IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
+    FRONTEND_URL: process.env.FRONTEND_URL
 }
