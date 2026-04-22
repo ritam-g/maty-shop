@@ -94,20 +94,26 @@ export const googleController = async (req, res, next) => {
         const token = generateToken(resolveUserId(user), user.email, user.role)
 
         res.cookie('token', token, { httpOnly: true })
-        if(user.role !=='buyer'){
+        if (user.role !== 'buyer') {
             // its only for render time if you are ruuing in local you can cange in url
-            
-                res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
-            
-            
+            //render
+            // res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
+
+            // local
+            res.redirect(`http://localhost:5173/seller/dashboard`)
+
+
         }
-        else{
-            
-                res.redirect(`https://maty-shop.onrender.com`)
-            
-            
+        else {
+            // its only for render time if you are ruuing in local you can cange in url
+            //render
+            // res.redirect(`https://maty-shop.onrender.com`)
+
+            // local
+            res.redirect(`http://localhost:5173`)
+
         }
-        
+
     } catch (error) {
         console.log('====================================');
         console.log(error);

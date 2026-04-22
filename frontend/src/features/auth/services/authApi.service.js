@@ -2,10 +2,24 @@ import axios from "axios";
 
 /**
  * Base URL for authentication API endpoints
- * Uses environment variable VITE_BASE_URL if available, otherwise defaults to local development URL
+ * 
+ * DEVELOPMENT (Localhost):
+ * Uses http://localhost:5000/api/auth for local backend
+ * 
+ * PRODUCTION (Render):
+ * Uses https://maty-shop.onrender.com/api/auth for hosted backend
+ * 
+ * Configuration: Set VITE_API_BASE_URL in .env.local for production/Render URL
+ * Example: VITE_API_BASE_URL=https://maty-shop.onrender.com
  */
+//! render const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://maty-shop.onrender.com';
+// const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const apiBaseUrl = 'http://localhost:3000';
+
 const authApi = axios.create({
-    baseURL: `https://maty-shop.onrender.com/api/auth`,
+    // LOCAL: http://localhost:5000/api/auth
+    // PRODUCTION: https://maty-shop.onrender.com/api/auth (set via VITE_API_BASE_URL)
+    baseURL: `${apiBaseUrl}/api/auth`,
     withCredentials: true
 })
 

@@ -33,10 +33,23 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS configuration - allowing local Vite and production URL
+/**
+ * CORS configuration - allows both local development and production URLs
+ * 
+ * LOCAL DEVELOPMENT URLs (Localhost):
+ * - http://localhost:5173  (Vite default port)
+ * - http://localhost:5174  (Alternative Vite port)
+ * - http://localhost:3000  (Common development port)
+ * 
+ * PRODUCTION URLs (Render):
+ * - https://maty-shop.onrender.com
+ */
 const allowedOrigins = [
+    // LOCAL DEVELOPMENT
     'http://localhost:5173',
     'http://localhost:5174',
+    'http://localhost:3000',
+    // PRODUCTION (RENDER)
     'https://maty-shop.onrender.com'
 ].filter(Boolean);
 
@@ -73,13 +86,19 @@ app.use(express.static(path.join(__dirname, '../public')));
 /**
  * Google OAuth Strategy Configuration
  * Handles authentication via Google OAuth 2.0
+ * 
+ * CALLBACK URLS:
+ * - LOCAL: http://localhost:5173/api/auth/google/callback (or your backend port)
+ * - PRODUCTION (RENDER): https://maty-shop.onrender.com/api/auth/google/callback
  */
 const getGoogleCallbackURL = () => {
-    if (process.env.GOOGLE_CALLBACK_URL) {
-        return process.env.GOOGLE_CALLBACK_URL;
-    }
+    // if (process.env.GOOGLE_CALLBACK_URL) {
+    //     return process.env.GOOGLE_CALLBACK_URL;
+    // }
 
-    return `https://maty-shop.onrender.com/api/auth/google/callback`;
+    // DEFAULT: Use production URL if env variable not set
+    return `http://localhost:5173/api/auth/google/callback`;// for local development
+    // return `https://maty-shop.onrender.com/api/auth/google/callback`;
 };
 
 passport.use(new GoogleStrategy({
