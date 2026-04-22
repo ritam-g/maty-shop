@@ -16,12 +16,12 @@ function ContinueWithGoogle() {
     //! this is for render const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://maty-shop.onrender.com';
     // const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
     const apiBaseUrl = 'http://localhost:3000';
-    
+
     // Construct Google OAuth redirect URL
     // LOCAL: http://localhost:5000/api/auth/google
     // PRODUCTION: https://maty-shop.onrender.com/api/auth/google
     const googleAuthUrl = `${apiBaseUrl}/api/auth/google`;
-    
+
     return (
         <>
             <a

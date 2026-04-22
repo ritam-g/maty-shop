@@ -35,7 +35,7 @@ const authApi = axios.create({
  * @param {string} userData.contact - The user's contact number
  * @returns {Promise<Object>} The registration response data including user and token
  */
-export async function register({ name, email, password, role, contact}) {
+export async function register({ name, email, password, role, contact }) {
     const response = await authApi.post('/register', { name, email, password, role, contact });
     return response.data
 }

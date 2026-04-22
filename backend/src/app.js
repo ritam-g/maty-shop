@@ -72,8 +72,8 @@ app.use(passport.initialize());
  * Health check endpoint for Render
  */
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'OK', 
+    res.status(200).json({
+        status: 'OK',
         message: 'Server is running',
         database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
     });
