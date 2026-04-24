@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import cartModel from "../model/cart.model.js";
 import productModel from "../model/product.model.js";
 import { getMeUser } from "../services/auth.service.js";
@@ -231,26 +232,71 @@ export const getCartController = async (req, res) => {
  * - 500 for any other server errors
  * Note: Total price is calculated as the sum of (item price * quantity) for all items in the cart.
  */
+//! i still did not call this api in frontend but i will call it when i will implement checkout page
 export async function getCartTotalPrice(req, res, next) {
   try {
     const user = await getMeUser(req.user.id);
 
-    const cart = await cartModel.findOne({ user: user._id }).populate("items.product");
-    if (!cart) {
-      throw new AppError("Cart not found", 404);
-    }
-    // ! noraml way of doing this is to loop through each item and calculate price * quantity and sum it up, but we can also do it in one line using reduce method of array
-    const totalPrice = cart.items.reduce((total, item) => {
-      const price = item.price || item.product.price || 0;
-      console.log('====================================');
-      console.log("this is price ", price);
-      console.log('====================================');
-      return total + price.amount * item.quantity;
-    }, 0);
+    const totalPrice = await cartModel.aggregate(
+      [
+        {
+          $match: {
+            user: new mongoose.Types.ObjectId(req.user.id)
+          }
+        },
+        { $unwind: { path: '$items' } },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.product',
+            foreignField: '_id',
+            as: 'items.product'
+          }
+        },
+        { $unwind: { path: '$items.product' } },
+        {
+          $unwind: { path: '$items.product.variants' }
+        },
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                '$items.product.variants._id',
+                '$items.varient'
+              ]
+            }
+          }
+        },
+        {
+          $addFields: {
+            itemPrice: {
+              price: {
+                $multiply: [
+                  '$items.quantity',
+                  '$items.product.variants.price.amount'
+                ]
+              },
+              currency: '$items.price.currency'
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            totalPrice: { $sum: '$itemPrice.price' },
+            currency: {
+              $first: '$itemPrice.currency'
+            },
+            items: { $push: '$items' }
+          }
+        }
+      ]
+    );
 
     res.status(200).json({
       success: true,
-      totalPrice,
+      totalPrice: totalPrice[0]?.totalPrice || 0,
+      currency: totalPrice[0]?.currency || 'USD',
     });
   } catch (error) {
     next(error)
