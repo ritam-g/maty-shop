@@ -1,5 +1,6 @@
 import cartModel from "../model/cart.model.js";
 import productModel from "../model/product.model.js";
+import { getMeUser } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 
 /**
@@ -216,3 +217,42 @@ export const getCartController = async (req, res) => {
     cart,
   });
 };
+
+
+/**  
+ * Function Name: getCartTotalPrice
+ * Purpose: Calculate and return the total price of all items in the authenticated user's cart.
+ * Params:
+ * - req.user: Authenticated user payload
+ * Returns:
+ * - JSON response containing the total price of the cart
+ * Errors:
+ * - 404 if cart not found
+ * - 500 for any other server errors
+ * Note: Total price is calculated as the sum of (item price * quantity) for all items in the cart.
+ */
+export async function getCartTotalPrice(req, res, next) {
+  try {
+    const user = await getMeUser(req.user.id);
+
+    const cart = await cartModel.findOne({ user: user._id }).populate("items.product");
+    if (!cart) {
+      throw new AppError("Cart not found", 404);
+    }
+    // ! noraml way of doing this is to loop through each item and calculate price * quantity and sum it up, but we can also do it in one line using reduce method of array
+    const totalPrice = cart.items.reduce((total, item) => {
+      const price = item.price || item.product.price || 0;
+      console.log('====================================');
+      console.log("this is price ", price);
+      console.log('====================================');
+      return total + price.amount * item.quantity;
+    }, 0);
+
+    res.status(200).json({
+      success: true,
+      totalPrice,
+    });
+  } catch (error) {
+    next(error)
+  }
+}
