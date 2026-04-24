@@ -4,6 +4,7 @@ import {
   addToCartController,
   getCartController,
   getCartTotalPrice,
+  getTotalRevenu,
   updateCartItemQuantityController,
 } from '../controller/cart.controller.js'
 
@@ -17,4 +18,5 @@ cartRouter.get('/add/:productId/:variantId/:quantity', authMiddleware, addToCart
 cartRouter.patch('/item/:productId/:variantId/:quantity', authMiddleware, updateCartItemQuantityController)
 cartRouter.get('/get', authMiddleware, getCartController)
 cartRouter.get('/totalPrice',authMiddleware,getCartTotalPrice)
+cartRouter.get('/getAllRevenu',authMiddleware,getTotalRevenu)
 export default cartRouter

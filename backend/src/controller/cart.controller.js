@@ -302,3 +302,66 @@ export async function getCartTotalPrice(req, res, next) {
     next(error)
   }
 }
+
+
+export async function getTotalRevenu(req, res, next) {
+  try {
+
+    await getMeUser(req.user.id)
+    // get total revenu
+    const totalRevenu = await cartModel.aggregate(
+      [
+        { $unwind: { path: '$items' } },
+        {
+          $lookup: {
+            from: 'products',
+            let: { variantId: '$items.varient' },
+            pipeline: [
+              { $unwind: '$variants' },
+              {
+                $match: {
+                  $expr: {
+                    $eq: [
+                      '$variants._id',
+                      '$$variantId'
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'variantDetails'
+          }
+        },
+        { $unwind: { path: '$variantDetails' } },
+        {
+          $group: {
+            _id: '$user',
+            totalPrice: {
+              $sum: {
+                $multiply: [
+                  '$items.quantity',
+                  '$variantDetails.variants.price.amount'
+                ]
+              }
+            },
+            buyer: { $first: true }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenu: { $sum: '$totalPrice' }
+          }
+        }
+      ]
+    );
+
+    return res.status(200).json({
+      success: true,
+      totalRevenu: totalRevenu[0]?.totalRevenu || 0,
+      mytotalRevenu: totalRevenu.totalRevenu
+    })
+  } catch (error) {
+    next(error)
+  }
+}
