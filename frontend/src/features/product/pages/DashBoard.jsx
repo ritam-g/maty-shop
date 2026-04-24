@@ -8,6 +8,8 @@ import {
   handleProductImageError,
 } from '../utils/image.utils';
 import SellerSearchBar from '../components/seller/SellerSearchBar';
+import TotalPriceCard from '../../dashboard/components/TotalPriceCard';
+import RevenueCard from '../../dashboard/components/RevenueCard';
 
 // Skeleton Loading Card
 const ProductSkeleton = () => (
@@ -93,6 +95,12 @@ const DashBoard = () => {
             <span>Transmission Error: {error}</span>
           </div>
         )}
+
+        {/* --- Dashboard Metrics Widgets --- */}
+        <div className="revenu grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <TotalPriceCard />
+          <RevenueCard />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {isLoading ? (

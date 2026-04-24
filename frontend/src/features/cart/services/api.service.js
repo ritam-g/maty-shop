@@ -64,3 +64,25 @@ export async function updateCartItemQuantity({ productId, variantId, quantity })
     const response = await cartApi.patch(`/item/${productId}/${variantId}/${quantity}`)
     return response.data
 }
+
+/**
+ * Function Name: getCartTotalPrice
+ * Purpose: Fetch the total price of the items currently in the cart
+ * Returns:
+ * - Cart total price object
+ */
+export async function getCartTotalPrice() {
+    const response = await cartApi.get('/totalPrice')
+    return response.data
+}
+
+/**
+ * Function Name: getAllRevenue
+ * Purpose: Fetch the total revenue data
+ * Returns:
+ * - Revenue data object
+ */
+export async function getAllRevenue() {
+    const response = await cartApi.get('/getAllRevenu')
+    return response.data
+}
