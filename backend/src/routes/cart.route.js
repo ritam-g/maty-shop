@@ -5,6 +5,7 @@ import {
   createOrderController,
   getCartController,
   getCartTotalPrice,
+  getOrderDetailsController,
   getTotalRevenu,
   paymentVerificationController,
   updateCartItemQuantityController,
@@ -23,4 +24,5 @@ cartRouter.get('/totalPrice',authMiddleware,getCartTotalPrice)
 cartRouter.get('/getAllRevenu',authMiddleware,getTotalRevenu)
 cartRouter.post('/payment/create/order',authMiddleware,createOrderController)
 cartRouter.post('/payment/verify/order',authMiddleware,paymentVerificationController)
+cartRouter.get('/order/:paymentId',authMiddleware,getOrderDetailsController)
 export default cartRouter

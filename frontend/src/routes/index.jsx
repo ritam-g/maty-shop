@@ -82,7 +82,7 @@ export function AppRoutes() {
       />
 
       <Route
-        path="/order/:id"
+        path="/order/:paymentId"
         element={(
           <Protected>
             <OrderSuccess />

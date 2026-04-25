@@ -289,7 +289,8 @@ function Cart() {
           console.log('after api call ', ORDER);
           console.log('====================================');
           if (ORDER.success) {
-            navigate(`/order/${ORDER.id}`)
+            // Use razorpay_payment_id from the payment response for the URL parameter
+            navigate(`/order/${response.razorpay_payment_id}`)
           }
 
 

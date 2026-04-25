@@ -162,3 +162,19 @@ export async function paymentVerification({ razorpay_payment_id, razorpay_order_
     })
     return response.data
 }
+
+/**
+ * Function Name: getOrderDetails
+ * Purpose: Fetch order details by Razorpay payment ID.
+ *          Only returns orders that belong to the authenticated user.
+ * Params:
+ * - paymentId: Razorpay payment ID (pay_*)
+ * Returns:
+ * - Order details including paymentId, orderId, status, price, orderItems
+ * Throws:
+ * - Error if order not found or user is not authorized
+ */
+export async function getOrderDetails(paymentId) {
+    const response = await cartApi.get(`/order/${paymentId}`)
+    return response.data
+}

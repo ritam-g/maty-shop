@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { addToCart, getCart, makeOrders, updateCartItemQuantity, paymentVerification } from "../services/api.service.js";
+import { addToCart, getCart, makeOrders, updateCartItemQuantity, paymentVerification, getOrderDetails } from "../services/api.service.js";
 import { clearError, setError, setItems, setLoading } from "../state/cart.slice.js";
 
 /**
@@ -139,11 +139,40 @@ export const useCart = () => {
     const response = await paymentVerification({ razorpay_payment_id, razorpay_order_id, razorpay_signature })
     return response
   }
+
+  /**
+   * Function Name: handleGetOrderDetails
+   * Purpose: Fetch order details by Razorpay payment ID for the order success page.
+   * Params:
+   * - paymentId: Razorpay payment ID (pay_*)
+   * Returns:
+   * - Order details including paymentId, orderId, status, price, orderItems
+   * Throws:
+   * - Error if order not found or user is not authorized
+   */
+  const handleGetOrderDetails = useCallback(async (paymentId) => {
+    try {
+      if (!paymentId) {
+        throw new Error("Payment ID is required");
+      }
+      const response = await getOrderDetails(paymentId);
+      return response;
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || "Failed to fetch order details";
+      console.error("[Hook] Order details fetch error:", {
+        paymentId,
+        errorMessage: message,
+      });
+      throw error;
+    }
+  }, []);
+
   return {
     handleGetCart,
     handleAddToCart,
     handleUpdateCartItemQuantity,
     handelPaymentCart,
-    handelPaymentVerificaiton
+    handelPaymentVerificaiton,
+    handleGetOrderDetails
   };
 };

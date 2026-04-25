@@ -70,8 +70,18 @@ function CheckoutPage() {
 
     setIsPlacing(true);
     try {
+      // Simulate payment processing
       await new Promise((resolve) => window.setTimeout(resolve, 900));
+      
+      // Generate a mock payment ID for testing (in real flow, this comes from Razorpay)
+      const mockPaymentId = `pay_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      
       setToast({ type: "success", message: "Order placed. Confirmation has been sent to your phone." });
+      
+      // Navigate to order success page after a short delay
+      setTimeout(() => {
+        navigate(`/order/${mockPaymentId}`);
+      }, 1500);
     } finally {
       setIsPlacing(false);
     }

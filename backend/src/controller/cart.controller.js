@@ -509,7 +509,9 @@ export async function paymentVerificationController(req, res, next) {
       throw new AppError("Payment verification failed", 400);
     }
 
+    // Save the payment ID to the database for future retrieval
     paymentDetails.status = "paid";
+    paymentDetails.razorpay.paymentId = razorpay_payment_id;
     await paymentDetails.save();
     console.log('====================================');
     console.log('payemnt verification is sucessed');
@@ -521,5 +523,59 @@ export async function paymentVerificationController(req, res, next) {
     })
   } catch (error) {
     next(error)
+  }
+}
+
+/**
+ * Function Name: getOrderDetailsController
+ * Purpose: Fetch order/payment details for the authenticated user by payment ID.
+ *          Ensures users can only access their own orders for security.
+ * Params:
+ * - req.params.paymentId: Razorpay payment ID
+ * - req.user: Authenticated user payload from middleware
+ * Returns:
+ * - JSON response containing the payment/order details
+ * Errors:
+ * - 404 if payment not found
+ * - 401 if user is not authorized to access this order
+ */
+export async function getOrderDetailsController(req, res, next) {
+  try {
+    const { paymentId } = req.params;
+    const userId = req.user?.id || req.user?._id;
+
+    if (!userId) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    if (!paymentId) {
+      throw new AppError("Payment ID is required", 400);
+    }
+
+    // Find payment by razorpay paymentId and ensure it belongs to the logged-in user
+    const paymentDetails = await paymentModel.findOne({
+      "razorpay.paymentId": paymentId,
+      user: userId
+    }).lean();
+
+    if (!paymentDetails) {
+      throw new AppError("Order not found or you are not authorized to view this order", 404);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order details fetched successfully",
+      order: {
+        id: paymentDetails._id,
+        paymentId: paymentDetails.razorpay?.paymentId,
+        orderId: paymentDetails.razorpay?.orderId,
+        status: paymentDetails.status,
+        price: paymentDetails.price,
+        orderItems: paymentDetails.orderItems,
+        createdAt: paymentDetails.createdAt
+      }
+    });
+  } catch (error) {
+    next(error);
   }
 }

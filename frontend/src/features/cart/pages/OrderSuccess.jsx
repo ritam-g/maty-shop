@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, ShoppingBag, Package, Clock, Truck } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShoppingBag, Package, Clock, AlertCircle } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import Container from "../../product/components/layout/Container";
 import Navbar from "../../product/components/layout/Navbar";
-
-const successVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
+import { useCart } from "../hooks/useCart";
 
 const checkCircleVariants = {
   hidden: { pathLength: 0, opacity: 0 },
@@ -24,29 +16,44 @@ const checkCircleVariants = {
 };
 
 function OrderSuccess() {
-  const { id } = useParams();
+  const { paymentId } = useParams();
   const navigate = useNavigate();
+  const { handleGetOrderDetails } = useCart();
   const [isLoading, setIsLoading] = useState(true);
   const [orderData, setOrderData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (id) {
-        setOrderData({
-          orderId: id,
-          status: "confirmed",
-          estimatedDelivery: "3-5 Business Days",
-        });
+    console.log("[OrderSuccess] paymentId from useParams:", paymentId);
+    console.log("[OrderSuccess] paymentId type:", typeof paymentId);
+    console.log("[OrderSuccess] paymentId === 'undefined':", paymentId === "undefined");
+    
+    const fetchOrderDetails = async () => {
+      // Handle case where paymentId is undefined, null, or the string "undefined"
+      if (!paymentId || paymentId === "undefined" || paymentId === "null") {
+        console.error("[OrderSuccess] Invalid paymentId:", paymentId);
+        setError("No payment ID provided");
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
-    }, 1200);
 
-    return () => clearTimeout(timer);
-  }, [id]);
+      try {
+        const response = await handleGetOrderDetails(paymentId);
+        setOrderData(response.order);
+      } catch (err) {
+        const errorMessage = err?.response?.data?.message || err?.message || "Failed to fetch order details";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrderDetails();
+  }, [paymentId, handleGetOrderDetails]);
 
   if (isLoading) {
     return (
@@ -66,14 +73,61 @@ function OrderSuccess() {
             </div>
           </div>
           <p className="text-slate-400 text-sm font-medium tracking-wide">
-            Confirming your order...
+            Loading your order details...
           </p>
         </div>
       </div>
     );
   }
 
-  const orderId = orderData?.orderId || id || "N/A";
+  if (error || !orderData) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-14%] right-[-8%] h-[44rem] w-[44rem] rounded-full bg-indigo-600/10 blur-[150px]" />
+          <div className="absolute bottom-[-18%] left-[-14%] h-[46rem] w-[46rem] rounded-full bg-cyan-500/10 blur-[160px]" />
+        </div>
+
+        <Navbar />
+
+        <div className="relative z-10 flex flex-col items-center gap-6 max-w-md mx-auto px-4">
+          <div className="h-20 w-20 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/30">
+            <AlertCircle className="text-red-400" size={32} />
+          </div>
+          <h1 className="text-2xl font-black text-white text-center">Order Not Found</h1>
+          <p className="text-slate-400 text-center">
+            {error || "We couldn't find this order. It may not exist or you may not have permission to view it."}
+          </p>
+          <Link
+            to="/"
+            className="mt-4 inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm uppercase tracking-wider hover:bg-indigo-500 transition-all"
+          >
+            <ShoppingBag size={18} />
+            Go Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formatPrice = (amount, currency = "INR") => {
+    const formatted = Number(amount || 0).toFixed(2);
+    if (currency === "INR") {
+      return `₹${formatted}`;
+    }
+    return `$${formatted}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -89,12 +143,11 @@ function OrderSuccess() {
         <Container>
           <AnimatePresence mode="wait">
             <Motion.section
-              key="success-content"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-center justify-center min-h-[60vh]"
+              className="flex flex-col items-center"
             >
               <Motion.div
                 initial={{ scale: 0 }}
@@ -159,44 +212,101 @@ function OrderSuccess() {
                 Thank you for your purchase. Your order has been received and is being processed.
               </Motion.p>
 
+              {/* Order Details Card */}
               <Motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="glass-dark rounded-3xl p-6 md:p-8 w-full max-w-lg mb-10 border border-white/10"
+                className="glass-dark rounded-3xl p-6 md:p-8 w-full max-w-2xl mb-10 border border-white/10"
               >
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                  <span className="text-slate-400 text-sm font-medium">Order ID</span>
-                  <span className="text-white font-mono font-bold text-sm tracking-wide">
-                    {orderId}
+                <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                  <Package size={20} className="text-indigo-400" />
+                  Order Details
+                </h2>
+
+                {/* Order Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-white/5">
+                      <span className="text-slate-400 text-sm">Payment ID</span>
+                      <span className="text-white font-mono text-sm truncate ml-4">
+                        {orderData.paymentId || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-white/5">
+                      <span className="text-slate-400 text-sm">Order ID</span>
+                      <span className="text-white font-mono text-sm truncate ml-4">
+                        {orderData.orderId || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-white/5">
+                      <span className="text-slate-400 text-sm">Status</span>
+                      <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                        orderData.status === "paid"
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-yellow-500/20 text-yellow-400"
+                      }`}>
+                        {orderData.status?.toUpperCase() || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 border border-white/5">
+                      <span className="text-slate-400 text-sm">Date</span>
+                      <span className="text-white text-sm">
+                        {formatDate(orderData.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total Price */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 border border-indigo-500/20 mb-6">
+                  <span className="text-slate-300 font-semibold">Total Amount</span>
+                  <span className="text-2xl font-black text-white">
+                    {formatPrice(orderData.price?.amount, orderData.price?.currency)}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="text-emerald-400" size={18} />
+                {/* Order Items */}
+                {orderData.orderItems && orderData.orderItems.length > 0 && (
+                  <>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                      Order Items ({orderData.orderItems.length})
+                    </h3>
+                    <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                      {orderData.orderItems.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-4 p-4 rounded-2xl bg-slate-950/50 border border-white/5"
+                        >
+                          {item.images && item.images.length > 0 && (
+                            <img
+                              src={item.images[0].url}
+                              alt={item.title}
+                              className="h-16 w-16 rounded-xl object-cover border border-white/10"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white truncate">
+                              {item.title || "Product"}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              Qty: {item.quantity || 1}
+                            </p>
+                            <p className="text-sm font-semibold text-indigo-400 mt-2">
+                              {formatPrice(item.price?.amount, item.price?.currency)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider">Status</p>
-                      <p className="text-sm font-semibold text-emerald-400">Confirmed</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                      <Clock className="text-indigo-400" size={18} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wider">Delivery</p>
-                      <p className="text-sm font-semibold text-white">
-                        {orderData?.estimatedDelivery || "3-5 Days"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </Motion.div>
 
+              {/* Action Buttons */}
               <Motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
