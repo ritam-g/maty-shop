@@ -63,7 +63,10 @@ function CartSummary({ totals, currency = "INR", isLoading = false, onCheckout }
 
       <button
         type="button"
-        onClick={onCheckout}
+        onClick={() => {
+          onCheckout({total:totals.total, displayCurrency:currency });
+          
+        }}
         disabled={totalItems <= 0}
         className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-500 text-white font-bold uppercase tracking-wider text-xs shadow-[0_12px_30px_rgba(79,70,229,0.45)] disabled:opacity-50 disabled:cursor-not-allowed"
       >

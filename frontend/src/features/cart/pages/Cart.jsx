@@ -105,7 +105,7 @@ function EmptyCartState({ onStartShopping }) {
 function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity,handelPaymentCart } = useCart();
+  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity, handelPaymentCart } = useCart();
   const { items, isLoading, error } = useSelector((state) => state.cart);
 
   const [pendingMap, setPendingMap] = useState({});
@@ -121,7 +121,7 @@ function Cart() {
   }, [cartItems]);
 
   useEffect(() => {
-    handleGetCart().catch(() => {});
+    handleGetCart().catch(() => { });
   }, [handleGetCart]);
 
   useEffect(() => {
@@ -241,11 +241,12 @@ function Cart() {
     }
   }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
 
-  const handleCheckout = useCallback(() => {
+  const handleCheckout = useCallback(({ total=10, displayCurrency="INR" }) => {
     if (totals.totalItems <= 0) {
       showToast("error", "Your cart is empty.");
       return;
     }
+    handelPaymentCart({ amount: total, currency: displayCurrency })
     navigate("/checkout");
   }, [navigate, showToast, totals.totalItems]);
 
@@ -297,7 +298,7 @@ function Cart() {
                   totals={totals}
                   currency={displayCurrency}
                   isLoading={isLoading}
-                  onCheckout={()=>{handelPaymentCart({amount:totals.total,currency:displayCurrency})}}
+                  onCheckout={handleCheckout}
                 />
               </div>
             </div>
