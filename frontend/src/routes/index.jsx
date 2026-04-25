@@ -10,6 +10,7 @@ import ProductDetailPage from '../features/product/pages/ProductDetailPage';
 import SellerProductDetail from '../features/product/pages/SellerProductDetail';
 import Cart from '../features/cart/pages/Cart';
 import CheckoutPage from '../features/cart/pages/Checkout';
+import OrderSuccess from '../features/cart/pages/OrderSuccess';
 
 export function AppRoutes() {
   return (
@@ -76,6 +77,15 @@ export function AppRoutes() {
         element={(
           <Protected>
             <CheckoutPage />
+          </Protected>
+        )}
+      />
+
+      <Route
+        path="/order/:id"
+        element={(
+          <Protected>
+            <OrderSuccess />
           </Protected>
         )}
       />
