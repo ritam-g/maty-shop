@@ -4,6 +4,7 @@ import productModel from "../model/product.model.js";
 import { getMeUser } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 import { createOrder } from "../services/payment.service.js";
+import paymentModel from "../model/payment.model.js";
 
 /**
  * Function Name: populateCart
@@ -17,6 +18,67 @@ const populateCart = async (userId) => (
   cartModel.findOne({ user: userId }).populate("items.product")
 );
 
+async function getUserTotalPrice(userId) {
+  const userCartTotalAmount = await cartModel.aggregate(
+    [
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId)
+        }
+      },
+      { $unwind: { path: '$items' } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'items.product'
+        }
+      },
+      { $unwind: { path: '$items.product' } },
+      {
+        $unwind: { path: '$items.product.variants' }
+      },
+      {
+        $match: {
+          $expr: {
+            $eq: [
+              '$items.product.variants._id',
+              '$items.varient'
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          itemPrice: {
+            price: {
+              $multiply: [
+                '$items.quantity',
+                '$items.product.variants.price.amount'
+              ]
+            },
+            currency: '$items.price.currency'
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id',
+          totalPrice: { $sum: '$itemPrice.price' },
+          currency: {
+            $first: '$itemPrice.currency'
+          },
+          items: { $push: '$items' }
+        }
+      }
+    ]
+
+  );
+  console.log(userCartTotalAmount);
+
+  return userCartTotalAmount
+}
 /**
  * Function Name: getAuthenticatedUserId
  * Purpose: Normalize authenticated user id regardless of whether token payload uses id or _id.
@@ -238,62 +300,10 @@ export async function getCartTotalPrice(req, res, next) {
   try {
     const user = await getMeUser(req.user.id);
 
-    const totalPrice = await cartModel.aggregate(
-      [
-        {
-          $match: {
-            user: new mongoose.Types.ObjectId(req.user.id)
-          }
-        },
-        { $unwind: { path: '$items' } },
-        {
-          $lookup: {
-            from: 'products',
-            localField: 'items.product',
-            foreignField: '_id',
-            as: 'items.product'
-          }
-        },
-        { $unwind: { path: '$items.product' } },
-        {
-          $unwind: { path: '$items.product.variants' }
-        },
-        {
-          $match: {
-            $expr: {
-              $eq: [
-                '$items.product.variants._id',
-                '$items.varient'
-              ]
-            }
-          }
-        },
-        {
-          $addFields: {
-            itemPrice: {
-              price: {
-                $multiply: [
-                  '$items.quantity',
-                  '$items.product.variants.price.amount'
-                ]
-              },
-              currency: '$items.price.currency'
-            }
-          }
-        },
-        {
-          $group: {
-            _id: '$_id',
-            totalPrice: { $sum: '$itemPrice.price' },
-            currency: {
-              $first: '$itemPrice.currency'
-            },
-            items: { $push: '$items' }
-          }
-        }
-      ]
-    );
-
+    const totalPrice = await getUserTotalPrice(req.user.id)
+    if (!totalPrice) {
+      throw new AppError("Cart not found", 404);
+    }
     res.status(200).json({
       success: true,
       totalPrice: totalPrice[0]?.totalPrice || 0,
@@ -376,48 +386,100 @@ export async function getTotalRevenu(req, res, next) {
     next(error)
   }
 }
-
+/**  
+ * Function Name: createOrderController
+ * Purpose: Create an order for the authenticated user's cart.
+ * Params:
+ * - req.user: Authenticated user payload
+ * Returns:
+ * - JSON response containing the created order document
+ * Errors:
+ * - 404 if cart not found
+ * 
+ */
 export async function createOrderController(req, res, next) {
   try {
-    const { amount, currency } = req.body;
     const userId = req.user?.id || req.user?._id;
 
-    // Validate user is authenticated
     if (!userId) {
       throw new AppError('Authentication required', 401);
     }
 
-    // Validate amount is provided
-    if (amount === undefined || amount === null || amount === '') {
-      throw new AppError('Amount is required', 400);
-    }
-
-    // Verify user exists in database
     await getMeUser(userId);
 
-    console.log(`[Order Controller] Creating order for user: ${userId}, Amount: ${amount}, Currency: ${currency}`);
+    const cart = await cartModel
+      .findOne({ user: userId })
+      .populate("items.product");
 
-    // Create order via payment service
+    if (!cart) {
+      throw new AppError("Cart not found", 404);
+    }
+
+    const userCartTotalAmount = await getUserTotalPrice(userId);
+
+    if (!userCartTotalAmount.length) {
+      throw new AppError("Cart is empty", 400);
+    }
+
     const order = await createOrder({
-      amount: Number(amount),
-      currency: currency || 'INR',
+      amount: Number(userCartTotalAmount[0].totalPrice),
+      currency: userCartTotalAmount[0].currency || 'INR',
     });
 
-    console.log(`[Order Controller] Order created - ID: ${order.id}`);
+    const payment = await paymentModel.create({
+      user: userId,
+      razorpay: {
+        orderId: order.id,
+      },
+      price: {
+        amount: userCartTotalAmount[0].totalPrice,
+        currency: userCartTotalAmount[0].currency
+      },
+
+      orderItems: cart.items.map(item => {
+
+        if (!item.product) {
+          throw new AppError("Product not populated", 500);
+        }
+
+        // ✅ HANDLE BOTH (variant / varient)
+        const variantId = item.variant || item.varient;
+
+        if (!variantId) {
+          throw new AppError("Variant missing in cart item", 500);
+        }
+
+        const selectedVariant = item.product.variants.find(
+          v => v._id && String(v._id) === String(variantId)
+        );
+
+        if (!selectedVariant) {
+          throw new AppError("Variant not found in product", 500);
+        }
+
+        return {
+          title: item.product.title,
+          productId: item.product._id,
+          variantId: variantId,
+          quantity: item.quantity,
+          images: selectedVariant.images || item.product.images,
+          description: item.product.description,
+          price: {
+            amount: selectedVariant.price?.amount || item.product.price.amount,
+            currency: selectedVariant.price?.currency || item.product.price.currency
+          }
+        };
+      })
+    });
 
     return res.status(200).json({
       success: true,
       message: 'Order created successfully',
       order,
-    });
-  } catch (error) {
-    console.error('[Order Controller] Error:', {
-      message: error.message,
-      amount: req.body?.amount,
-      currency: req.body?.currency,
-      userId: req.user?.id,
+      payment
     });
 
+  } catch (error) {
     next(error);
   }
 }

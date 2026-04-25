@@ -51,6 +51,9 @@ function validatePaymentInput(amount, currency) {
 export async function createOrder({ amount, currency = 'INR' }) {
     try {
         // Validate inputs
+        console.log('====================================');
+        console.log(amount,currency);
+        console.log('====================================');
         const normalizedCurrency = validatePaymentInput(amount, currency);
         const numAmount = Number(amount);
 
