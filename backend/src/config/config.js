@@ -16,7 +16,8 @@ if (process.env.CLIENT_SECRET === undefined) throw new Error('CLIENT_SECRET is n
 if (process.env.IMAGEKIT_PUBLIC_KEY === undefined) throw new Error('IMAGEKIT_PUBLIC_KEY is not defined')
 if (process.env.IMAGEKIT_PRIVATE_KEY === undefined) throw new Error('IMAGEKIT_PRIVATE_KEY is not defined')
 if (process.env.IMAGEKIT_URL_ENDPOINT === undefined) throw new Error('IMAGEKIT_URL_ENDPOINT is not defined')
-
+if(process.env.REZOR_PAY_API_KEY=== undefined) throw new Error('REZOR_PAY_API_KEY is not defined')
+if(process.env.REZOR_PAY_API_SECRET=== undefined) throw new Error('REZOR_PAY_API_SECRET is not defined')
 
 /**
  * Application configuration object containing all environment variables
@@ -49,7 +50,9 @@ export const AppConfig = {
     IMAGEKIT_PUBLIC_KEY: sanitizeEnv(process.env.IMAGEKIT_PUBLIC_KEY),
     IMAGEKIT_PRIVATE_KEY: sanitizeEnv(process.env.IMAGEKIT_PRIVATE_KEY),
     IMAGEKIT_URL_ENDPOINT: sanitizeEnv(process.env.IMAGEKIT_URL_ENDPOINT),
-    FRONTEND_URL: 'https://maty-shop.onrender.com'
+    FRONTEND_URL: 'https://maty-shop.onrender.com',
+    REZOR_PAY_API_KEY: sanitizeEnv(process.env.REZOR_PAY_API_KEY),
+    REZOR_PAY_API_SECRET: sanitizeEnv(process.env.REZOR_PAY_API_SECRET)
 }
 
 

@@ -2,6 +2,7 @@ import express from 'express'
 import { authMiddleware } from '../middleware/auth.middleware.js'
 import {
   addToCartController,
+  createOrderController,
   getCartController,
   getCartTotalPrice,
   getTotalRevenu,
@@ -19,4 +20,5 @@ cartRouter.patch('/item/:productId/:variantId/:quantity', authMiddleware, update
 cartRouter.get('/get', authMiddleware, getCartController)
 cartRouter.get('/totalPrice',authMiddleware,getCartTotalPrice)
 cartRouter.get('/getAllRevenu',authMiddleware,getTotalRevenu)
+cartRouter.post('/payment/create/order',authMiddleware,createOrderController)
 export default cartRouter

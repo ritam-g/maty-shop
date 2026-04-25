@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { get } from "mongoose";
 import cartModel from "../model/cart.model.js";
 import productModel from "../model/product.model.js";
 import { getMeUser } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
+import { createOrder } from "../services/payment.service.js";
 
 /**
  * Function Name: populateCart
@@ -302,7 +303,17 @@ export async function getCartTotalPrice(req, res, next) {
     next(error)
   }
 }
-
+/** 
+ * Function Name: getTotalRevenu
+ * Purpose: Calculate and return the total revenu for the authenticated user.
+ * Params:
+ * - req.user: Authenticated user payload
+ * Returns:
+ * - JSON response containing the total revenu
+ * Errors:
+ * - 404 if cart not found
+ * - 500 for any other server errors
+ */
 
 export async function getTotalRevenu(req, res, next) {
   try {
@@ -363,5 +374,45 @@ export async function getTotalRevenu(req, res, next) {
     })
   } catch (error) {
     next(error)
+  }
+}
+
+export async function createOrderController(req, res, next) {
+  try {
+    const { amount } = req.body;
+    let { currency } = req.body;
+
+    // Check user
+    await getMeUser(req.user.id);
+
+    // Default currency
+    if (!currency) {
+      currency = "INR";
+    } else {
+      currency = String(currency).toUpperCase();
+    }
+
+    // Validate amount
+    if (!amount || isNaN(amount)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount",
+      });
+    }
+
+    // Create order
+    const order = await createOrder({
+      amount: Number(amount),
+      currency,
+    });
+
+    return res.status(200).json({
+      success: true,
+      order,
+    });
+
+  } catch (error) {
+    console.log("ERROR in createOrderController:", error);
+    next(error);
   }
 }
