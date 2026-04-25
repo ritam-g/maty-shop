@@ -90,12 +90,66 @@ export async function getAllRevenue() {
 
 /**  
  * Function Name: makeOrders
- * Purpose: Fetch the total price of the items currently in the cart
+ * Purpose: Create a payment order on the backend
+ * Params:
+ * - amount: Payment amount (number, positive)
+ * - currency: Currency code (INR or USD, will be normalized)
  * Returns:
- * - Cart total price object
+ * - { success: true, order: { id, amount, currency, status } }
+ * Throws:
+ * - Error if validation fails or API request fails
  */
-export async function makeOrders({amount, currency}) {
-    const response = await cartApi.post('/payment/create/order', {amount, currency})
-    return response.data
-    
+export async function makeOrders({ amount, currency = 'INR' }) {
+    try {
+        // Client-side validation
+        const numAmount = Number(amount);
+        if (!Number.isFinite(numAmount) || numAmount <= 0) {
+            throw new Error('Amount must be a positive number greater than 0');
+        }
+
+        const normalizedCurrency = String(currency).trim().toUpperCase();
+        const supportedCurrencies = ['INR', 'USD'];
+        if (!supportedCurrencies.includes(normalizedCurrency)) {
+            throw new Error(`Unsupported currency: ${currency}. Supported: ${supportedCurrencies.join(', ')}`);
+        }
+
+        console.log(`[API] Creating payment order - Amount: ${numAmount} ${normalizedCurrency}`);
+
+        // Make API request
+        const response = await cartApi.post('/payment/create/order', {
+            amount: numAmount,
+            currency: normalizedCurrency,
+        });
+
+        if (!response.data?.success) {
+            throw new Error(response.data?.message || 'Failed to create order');
+        }
+
+        if (!response.data?.order?.id) {
+            throw new Error('Invalid response: Order ID missing');
+        }
+
+        console.log(`[API] Order created - ID: ${response.data.order.id}`);
+
+        return response.data;
+    } catch (error) {
+        // Extract meaningful error message
+        const errorMessage = error?.response?.data?.message
+            || error?.message
+            || 'Failed to create payment order';
+        const errorStatus = error?.response?.status;
+
+        console.error('[API] Payment order creation failed:', {
+            status: errorStatus,
+            message: errorMessage,
+            amount,
+            currency,
+        });
+
+        // Re-throw with context
+        const paymentError = new Error(errorMessage);
+        paymentError.status = errorStatus;
+        throw paymentError;
+    }
+
 }

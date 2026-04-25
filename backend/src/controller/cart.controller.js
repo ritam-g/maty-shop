@@ -378,23 +378,46 @@ export async function getTotalRevenu(req, res, next) {
 }
 
 export async function createOrderController(req, res, next) {
-  const { amount, currency } = req.body
   try {
-    await getMeUser(req.user.id)
+    const { amount, currency } = req.body;
+    const userId = req.user?.id || req.user?._id;
+
+    // Validate user is authenticated
+    if (!userId) {
+      throw new AppError('Authentication required', 401);
+    }
+
+    // Validate amount is provided
+    if (amount === undefined || amount === null || amount === '') {
+      throw new AppError('Amount is required', 400);
+    }
+
+    // Verify user exists in database
+    await getMeUser(userId);
+
+    console.log(`[Order Controller] Creating order for user: ${userId}, Amount: ${amount}, Currency: ${currency}`);
+
+    // Create order via payment service
     const order = await createOrder({
       amount: Number(amount),
-      currency: currency
-    })
+      currency: currency || 'INR',
+    });
+
+    console.log(`[Order Controller] Order created - ID: ${order.id}`);
 
     return res.status(200).json({
       success: true,
-      order
-    })
+      message: 'Order created successfully',
+      order,
+    });
   } catch (error) {
-    console.log('====================================');
-    console.log(error);
-    console.log('====================================');
+    console.error('[Order Controller] Error:', {
+      message: error.message,
+      amount: req.body?.amount,
+      currency: req.body?.currency,
+      userId: req.user?.id,
+    });
 
-    next(error)
+    next(error);
   }
 }

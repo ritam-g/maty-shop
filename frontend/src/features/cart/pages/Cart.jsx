@@ -9,6 +9,7 @@ import CartItemCard from "../components/CartItemCard";
 import CartSummary from "../components/CartSummary";
 import { useCart } from "../hooks/useCart";
 import { removeItem, restoreItems, setItemQuantity } from "../state/cart.slice.js";
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
 import {
   getCartItemKey,
   getCartTotals,
@@ -107,7 +108,9 @@ function Cart() {
   const navigate = useNavigate();
   const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity, handelPaymentCart } = useCart();
   const { items, isLoading, error } = useSelector((state) => state.cart);
-
+  const user = useSelector(state => state.auth.user)
+  //! const { Razorpay } = useRazorpay();
+  const { error: razorpayError, isLoading: razorpayLoading, Razorpay } = useRazorpay();
   const [pendingMap, setPendingMap] = useState({});
   const [toast, setToast] = useState(null);
 
@@ -241,14 +244,77 @@ function Cart() {
     }
   }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
 
-  const handleCheckout = useCallback(({ total=10, displayCurrency="INR" }) => {
-    if (totals.totalItems <= 0) {
-      showToast("error", "Your cart is empty.");
-      return;
+  const handleCheckout = useCallback(async ({ total = 10, displayCurrency = "INR" }) => {
+    try {
+      if (totals.totalItems <= 0) {
+        showToast("error", "Your cart is empty.");
+        return;
+      }
+
+      console.log("[Checkout] Starting payment process - Amount:", total, "Currency:", displayCurrency);
+
+      // Step 1: Create order on backend
+      let order;
+      try {
+        order = await handelPaymentCart({ amount: total, currency: displayCurrency });
+      } catch (error) {
+        const errorMsg = error?.message || "Failed to create payment order. Please try again.";
+        console.error("[Checkout] Order creation failed:", errorMsg);
+        showToast("error", errorMsg);
+        return;
+      }
+
+      if (!order?.id) {
+        console.error("[Checkout] Invalid order response - missing order ID", order);
+        showToast("error", "Invalid order data received. Please try again.");
+        return;
+      }
+
+      console.log("[Checkout] Order created successfully - ID:", order.id);
+
+      // Step 2: Prepare Razorpay options with actual order data
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_ShjhyRmrT6o4a5",
+        amount: order.amount, // Amount already in paise/cents from backend
+        currency: order.currency || "INR",
+        name: "Your Store Name",
+        description: `Order #${order.id}`,
+        order_id: order.id, // ✅ Use actual order ID from backend
+        handler: (response) => {
+          console.log("[Checkout] Payment successful - Response:", response);
+          showToast("success", "Payment completed successfully!");
+          // TODO: Verify payment on backend and update order status
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.contact || "",
+        },
+        theme: {
+          color: "#4F46E5",
+        },
+        modal: {
+          ondismiss: () => {
+            console.log("[Checkout] Payment modal dismissed by user");
+            showToast("error", "Payment cancelled. Please try again.");
+          },
+        },
+      };
+
+      console.log("[Checkout] Razorpay options:", options);
+
+      // Step 3: Open Razorpay checkout
+      const razorpayInstance = new Razorpay(options);
+      razorpayInstance.on("payment.failed", (error) => {
+        console.error("[Checkout] Payment failed - Error:", error);
+        showToast("error", `Payment failed: ${error.description}`);
+      });
+      razorpayInstance.open();
+    } catch (error) {
+      console.error("[Checkout] Unexpected error:", error);
+      showToast("error", "An unexpected error occurred. Please try again.");
     }
-    handelPaymentCart({ amount: total, currency: displayCurrency })
-    navigate("/checkout");
-  }, [navigate, showToast, totals.totalItems]);
+  }, [navigate, showToast, totals.totalItems, user, handelPaymentCart]);
 
   return (
     <div className="min-h-screen bg-slate-950">

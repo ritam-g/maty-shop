@@ -88,15 +88,52 @@ export const useCart = () => {
 
   /**  
    * Function Name: handelPaymentCart
-   * Purpose: Make a payment and return the order object
+   * Purpose: Create a payment order and return order details for Razorpay checkout
+   * Params:
+   * - amount: Payment amount (number, positive)
+   * - currency: Currency code (INR or USD, case-insensitive)
+   * Returns: Order object with { id, amount, currency }
+   * Throws: Error with meaningful message on failure
    */
-  async function handelPaymentCart({ amount, currency }) {
-    const response = await makeOrders({ amount, currency })
-    console.log(response.order);
-    
-    return response.order
+  const handelPaymentCart = useCallback(async ({ amount, currency = 'INR' }) => {
+    try {
+      // Validate inputs
+      const numAmount = Number(amount);
+      if (!Number.isFinite(numAmount) || numAmount <= 0) {
+        throw new Error('Invalid amount: must be a positive number');
+      }
 
-  }
+      const normalizedCurrency = String(currency).trim().toUpperCase();
+
+      console.log(`[Hook] Creating payment order - Amount: ${numAmount} ${normalizedCurrency}`);
+
+      // Call API to create order
+      const response = await makeOrders({
+        amount: numAmount,
+        currency: normalizedCurrency,
+      });
+
+      if (!response?.order) {
+        throw new Error('Invalid response: Order data missing');
+      }
+
+      console.log(`[Hook] Order created - ID: ${response.order.id}`);
+
+      // Return order with all necessary details
+      return response.order;
+    } catch (error) {
+      const errorMessage = error?.message || 'Failed to create payment order';
+
+      console.error('[Hook] Payment error:', {
+        amount,
+        currency,
+        errorMessage,
+      });
+
+      // Re-throw so caller can handle
+      throw new Error(errorMessage);
+    }
+  }, []);
   return {
     handleGetCart,
     handleAddToCart,
