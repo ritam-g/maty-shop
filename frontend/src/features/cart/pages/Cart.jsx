@@ -105,7 +105,7 @@ function EmptyCartState({ onStartShopping }) {
 function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity } = useCart();
+  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity,handelPaymentCart } = useCart();
   const { items, isLoading, error } = useSelector((state) => state.cart);
 
   const [pendingMap, setPendingMap] = useState({});
@@ -297,7 +297,7 @@ function Cart() {
                   totals={totals}
                   currency={displayCurrency}
                   isLoading={isLoading}
-                  onCheckout={handleCheckout}
+                  onCheckout={()=>{handelPaymentCart({amount:totals.total,currency:displayCurrency})}}
                 />
               </div>
             </div>

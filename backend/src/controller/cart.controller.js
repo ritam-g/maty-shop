@@ -378,41 +378,23 @@ export async function getTotalRevenu(req, res, next) {
 }
 
 export async function createOrderController(req, res, next) {
+  const { amount, currency } = req.body
   try {
-    const { amount } = req.body;
-    let { currency } = req.body;
-
-    // Check user
-    await getMeUser(req.user.id);
-
-    // Default currency
-    if (!currency) {
-      currency = "INR";
-    } else {
-      currency = String(currency).toUpperCase();
-    }
-
-    // Validate amount
-    if (!amount || isNaN(amount)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount",
-      });
-    }
-
-    // Create order
+    await getMeUser(req.user.id)
     const order = await createOrder({
       amount: Number(amount),
-      currency,
-    });
+      currency: currency
+    })
 
     return res.status(200).json({
       success: true,
-      order,
-    });
-
+      order
+    })
   } catch (error) {
-    console.log("ERROR in createOrderController:", error);
-    next(error);
+    console.log('====================================');
+    console.log(error);
+    console.log('====================================');
+
+    next(error)
   }
 }

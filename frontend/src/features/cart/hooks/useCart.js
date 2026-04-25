@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { addToCart, getCart, updateCartItemQuantity } from "../services/api.service.js";
+import { addToCart, getCart, makeOrders, updateCartItemQuantity } from "../services/api.service.js";
 import { clearError, setError, setItems, setLoading } from "../state/cart.slice.js";
 
 /**
@@ -86,9 +86,21 @@ export const useCart = () => {
     }
   }, [dispatch]);
 
+  /**  
+   * Function Name: handelPaymentCart
+   * Purpose: Make a payment and return the order object
+   */
+  async function handelPaymentCart({ amount, currency }) {
+    const response = await makeOrders({ amount, currency })
+    console.log(response.order);
+    
+    return response.order
+
+  }
   return {
     handleGetCart,
     handleAddToCart,
     handleUpdateCartItemQuantity,
+    handelPaymentCart
   };
 };

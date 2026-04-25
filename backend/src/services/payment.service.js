@@ -13,7 +13,7 @@ export async function createOrder({ amount, currency }) {
     
     const option = {
         amount: amount * 100,
-        currency
+        currency:currency.toUpperCase(),
     }
 
     const order = await razorpay.orders.create(option)

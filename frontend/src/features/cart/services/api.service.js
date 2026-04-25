@@ -86,3 +86,16 @@ export async function getAllRevenue() {
     const response = await cartApi.get('/getAllRevenu')
     return response.data
 }
+
+
+/**  
+ * Function Name: makeOrders
+ * Purpose: Fetch the total price of the items currently in the cart
+ * Returns:
+ * - Cart total price object
+ */
+export async function makeOrders({amount, currency}) {
+    const response = await cartApi.post('/payment/create/order', {amount, currency})
+    return response.data
+    
+}
