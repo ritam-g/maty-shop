@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { ArrowRight, ShoppingBag } from "lucide-react";
+import { ArrowRight, AwardIcon, ShoppingBag } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Container from "../../product/components/layout/Container";
@@ -106,7 +106,7 @@ function EmptyCartState({ onStartShopping }) {
 function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity, handelPaymentCart } = useCart();
+  const { handleAddToCart, handleGetCart, handleUpdateCartItemQuantity, handelPaymentCart, handelPaymentVerificaiton } = useCart();
   const { items, isLoading, error } = useSelector((state) => state.cart);
   const user = useSelector(state => state.auth.user)
   //! const { Razorpay } = useRazorpay();
@@ -280,10 +280,19 @@ function Cart() {
         name: "Your Store Name",
         description: `Order #${order.id}`,
         order_id: order.id, // ✅ Use actual order ID from backend
-        handler: (response) => {
+        handler: async (response) => {
           console.log("[Checkout] Payment successful - Response:", response);
           showToast("success", "Payment completed successfully!");
           // TODO: Verify payment on backend and update order status
+          const ORDER = await handelPaymentVerificaiton(response)
+          console.log('====================================');
+          console.log('after api call ', ORDER);
+          console.log('====================================');
+          if (ORDER.success) {
+            navigate(`/order/${ORDER.id}`)
+          }
+
+
         },
         prefill: {
           name: user?.name || "",

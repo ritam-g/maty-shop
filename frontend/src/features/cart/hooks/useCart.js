@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { addToCart, getCart, makeOrders, updateCartItemQuantity } from "../services/api.service.js";
+import { addToCart, getCart, makeOrders, updateCartItemQuantity, paymentVerification } from "../services/api.service.js";
 import { clearError, setError, setItems, setLoading } from "../state/cart.slice.js";
 
 /**
@@ -134,10 +134,16 @@ export const useCart = () => {
       throw new Error(errorMessage);
     }
   }, []);
+
+  async function handelPaymentVerificaiton({ razorpay_payment_id, razorpay_order_id, razorpay_signature }) {
+    const response = await paymentVerification({ razorpay_payment_id, razorpay_order_id, razorpay_signature })
+    return response
+  }
   return {
     handleGetCart,
     handleAddToCart,
     handleUpdateCartItemQuantity,
-    handelPaymentCart
+    handelPaymentCart,
+    handelPaymentVerificaiton
   };
 };

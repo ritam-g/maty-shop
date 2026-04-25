@@ -5,7 +5,8 @@ import { getMeUser } from "../services/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 import { createOrder } from "../services/payment.service.js";
 import paymentModel from "../model/payment.model.js";
-
+import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils.js";
+import { AppConfig } from "../config/config.js";
 /**
  * Function Name: populateCart
  * Purpose: Load a user's cart with product details hydrated for frontend rendering.
@@ -481,5 +482,44 @@ export async function createOrderController(req, res, next) {
 
   } catch (error) {
     next(error);
+  }
+}
+
+export async function paymentVerificationController(req, res, next) {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+  try {
+    const paymentDetails = await paymentModel.findOne({
+      razorpay: {
+        orderId: razorpay_order_id
+      },
+      status: "pending"
+    })
+
+    if (!paymentDetails) {
+      throw new AppError("Payment not found", 404);
+    }
+
+    const isPaymentValid = await validatePaymentVerification({
+      order_id: razorpay_order_id,
+      payment_id: razorpay_payment_id,
+
+    }, razorpay_signature, AppConfig.REZOR_PAY_API_SECRET)
+    if (!isPaymentValid) {
+      throw new AppError("Payment verification failed", 400);
+    }
+
+    paymentDetails.status = "paid";
+    await paymentDetails.save();
+    console.log('====================================');
+    console.log('payemnt verification is sucessed');
+    console.log('====================================');
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+      order: paymentDetails
+    })
+  } catch (error) {
+    next(error)
   }
 }
