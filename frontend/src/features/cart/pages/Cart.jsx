@@ -112,6 +112,7 @@ function Cart() {
   //! const { Razorpay } = useRazorpay();
   const { error: razorpayError, isLoading: razorpayLoading, Razorpay } = useRazorpay();
   const [pendingMap, setPendingMap] = useState({});
+  const pendingLocks = React.useRef(new Set()); // Synchronous lock for race conditions
   const [toast, setToast] = useState(null);
 
   const cartItems = useMemo(() => normalizeCartItems(items), [items]);
@@ -134,6 +135,12 @@ function Cart() {
   }, [toast]);
 
   const setPending = useCallback((key, value) => {
+    // Synchronous update to prevent fast double-clicks before React state updates
+    if (value) {
+      pendingLocks.current.add(key);
+    } else {
+      pendingLocks.current.delete(key);
+    }
     setPendingMap((prev) => ({ ...prev, [key]: value }));
   }, []);
 
@@ -149,11 +156,14 @@ function Cart() {
    */
   const handleIncrease = useCallback(async (item) => {
     const key = getCartItemKey(item);
-    if (!key || pendingMap[key]) return;
+    // Synchronous check prevents race conditions from rapid spam clicking
+    if (!key || pendingLocks.current.has(key)) return;
 
     const productId = getProductIdFromItem(item);
     const variantId = getVariantIdFromItem(item);
     const stockLimit = getVariantStock(item?.product, variantId);
+    
+    // Always validate using current cart quantity on the frontend
     const currentQty = Math.max(1, Number(item?.quantity || 1));
 
     if (!productId || !variantId) {
@@ -161,24 +171,28 @@ function Cart() {
       return;
     }
 
+    // Check stock BEFORE updating UI or triggering API
     if (Number.isFinite(stockLimit) && currentQty >= stockLimit) {
       showToast("error", "Cannot add beyond available stock.");
       return;
     }
 
+    // Save previous state for rollback
     const snapshot = cartItems.map((entry) => ({ ...entry }));
     dispatch(setItemQuantity({ key, quantity: currentQty + 1 }));
     setPending(key, true);
 
     try {
+      // Trigger API call (only one click = one request due to pendingLocks)
       await handleAddToCart({ productId, variantId, quantity: 1 });
     } catch (requestError) {
+      // Always overwrite with server truth on error
       dispatch(restoreItems(snapshot));
       showToast("error", requestError?.response?.data?.message || "Unable to update quantity.");
     } finally {
       setPending(key, false);
     }
-  }, [cartItems, dispatch, handleAddToCart, pendingMap, setPending, showToast]);
+  }, [cartItems, dispatch, handleAddToCart, setPending, showToast]);
 
   /**
    * Function Name: handleDecrease
@@ -188,7 +202,8 @@ function Cart() {
    */
   const handleDecrease = useCallback(async (item) => {
     const key = getCartItemKey(item);
-    if (!key || pendingMap[key]) return;
+    // Synchronous check prevents race conditions
+    if (!key || pendingLocks.current.has(key)) return;
 
     const currentQty = Math.max(1, Number(item?.quantity || 1));
     if (currentQty <= 1) return;
@@ -212,7 +227,7 @@ function Cart() {
     } finally {
       setPending(key, false);
     }
-  }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
+  }, [cartItems, dispatch, handleUpdateCartItemQuantity, setPending, showToast]);
 
   /**
    * Function Name: handleRemove
@@ -222,7 +237,8 @@ function Cart() {
    */
   const handleRemove = useCallback(async (item) => {
     const key = getCartItemKey(item);
-    if (!key || pendingMap[key]) return;
+    // Synchronous check prevents race conditions
+    if (!key || pendingLocks.current.has(key)) return;
 
     const productId = getProductIdFromItem(item);
     const variantId = getVariantIdFromItem(item);
@@ -242,7 +258,7 @@ function Cart() {
     } finally {
       setPending(key, false);
     }
-  }, [cartItems, dispatch, handleUpdateCartItemQuantity, pendingMap, setPending, showToast]);
+  }, [cartItems, dispatch, handleUpdateCartItemQuantity, setPending, showToast]);
 
   const handleCheckout = useCallback(async ({ total = 10, displayCurrency = "INR" }) => {
     try {

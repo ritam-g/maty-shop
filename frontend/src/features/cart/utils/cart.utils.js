@@ -139,12 +139,31 @@ export const getVariantLabel = (product, variantId) => {
 
 export const normalizeCartItems = (items) => {
   if (!Array.isArray(items)) return [];
-  return items.map((item) => ({
-    ...item,
-    productId: getProductIdFromItem(item),
-    variantId: getVariantIdFromItem(item),
-    quantity: Math.max(1, Number(item?.quantity || 1)),
-  }));
+  
+  // Use a map to merge duplicate items based on their unique key (productId + variantId)
+  const mergedMap = {};
+
+  items.forEach((item) => {
+    const normalizedItem = {
+      ...item,
+      productId: getProductIdFromItem(item),
+      variantId: getVariantIdFromItem(item),
+      // Ensure quantity is at least 1 and a valid number
+      quantity: Math.max(1, Number(item?.quantity || 1)),
+    };
+    
+    // Unique key for each cart item
+    const key = getCartItemKey(normalizedItem);
+    
+    // If the item already exists in the cart, merge them by summing the quantities
+    if (mergedMap[key]) {
+      mergedMap[key].quantity += normalizedItem.quantity;
+    } else {
+      mergedMap[key] = normalizedItem;
+    }
+  });
+
+  return Object.values(mergedMap);
 };
 
 export const formatPrice = (amount, currencyCode = DEFAULT_CURRENCY) => {
