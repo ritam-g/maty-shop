@@ -169,8 +169,8 @@ export async function addToCartController(req, res, next) {
       (item) => item.product.toString() === productId && item.varient?.toString() === variantId
     );
 
-    const nextQuantity = existingItem 
-      ? Number(existingItem.quantity || 0) + requestedQuantity 
+    const nextQuantity = existingItem
+      ? Number(existingItem.quantity || 0) + requestedQuantity
       : requestedQuantity;
 
     const variant = validateStockLimit(productDetails, variantId, nextQuantity);
@@ -524,44 +524,113 @@ export async function createOrderController(req, res, next) {
   }
 }
 
+/**
+ * Function Name: paymentVerificationController
+ * Purpose: Verifies Razorpay payment signature and finalizes the order.
+ *          It updates stock quantities and clears the user's cart upon success.
+ * Params:
+ * - req.body: Contains Razorpay signature and IDs.
+ * Returns:
+ * - JSON response with success status and updated payment details.
+ */
 export async function paymentVerificationController(req, res, next) {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
+  // We use a database session to ensure all operations (payment update, stock deduction, cart clearing) 
+  // happen safely. If any step fails, everything is rolled back to prevent inconsistent states (e.g. money deducted but stock unchanged).
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
+    // Find the pending payment by its razorpay.orderId
     const paymentDetails = await paymentModel.findOne({
-      razorpay: {
-        orderId: razorpay_order_id
-      },
+      "razorpay.orderId": razorpay_order_id,
       status: "pending"
-    })
+    }).session(session);
 
     if (!paymentDetails) {
-      throw new AppError("Payment not found", 404);
+      throw new AppError("Payment not found or already processed", 404);
     }
 
+    // Verify the payment signature to ensure authenticity
     const isPaymentValid = await validatePaymentVerification({
       order_id: razorpay_order_id,
       payment_id: razorpay_payment_id,
+    }, razorpay_signature, AppConfig.REZOR_PAY_API_SECRET);
 
-    }, razorpay_signature, AppConfig.REZOR_PAY_API_SECRET)
     if (!isPaymentValid) {
       throw new AppError("Payment verification failed", 400);
     }
 
-    // Save the payment ID to the database for future retrieval
+    // -------------------------------------------------------------------------
+    // BLOCK: STOCK VALIDATION AND DEDUCTION
+    // Why: We must ensure products are still available right before finalizing the order.
+    // We loop through orderItems to deduct the correct quantity from each product variant.
+    // -------------------------------------------------------------------------
+    for (const item of paymentDetails.orderItems) {
+
+      const result = await productModel.updateOne(
+        {
+          _id: item.productId,
+          "variants._id": item.variantId,
+          "variants.stock": { $gte: item.quantity } // ensures stock is enough
+        },
+        {
+          $inc: { "variants.$.stock": -item.quantity } // atomic deduction
+        },
+        { session }
+      );
+
+      // If no document updated → stock conflict
+      if (result.modifiedCount === 0) {
+        throw new AppError(
+          `Stock conflict for ${item.title}. Another user may have purchased it.`,
+          400
+        );
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // BLOCK: CLEAR USER CART
+    // Why: Once the payment is successful and stock is deducted, the user's cart must be emptied.
+    // -------------------------------------------------------------------------
+    await cartModel.findOneAndUpdate(
+      { user: paymentDetails.user },
+      { $set: { items: [] } },
+      { session }
+    );
+
+    // -------------------------------------------------------------------------
+    // BLOCK: FINALIZE PAYMENT STATUS
+    // Why: We update the status to "paid" so the order is locked and can be fulfilled.
+    // -------------------------------------------------------------------------
     paymentDetails.status = "paid";
     paymentDetails.razorpay.paymentId = razorpay_payment_id;
-    await paymentDetails.save();
+    await paymentDetails.save({ session });
+
+    // Commit all operations if everything was successful
+    await session.commitTransaction();
+
+
     console.log('====================================');
-    console.log('payemnt verification is sucessed');
+    console.log('Payment verification succeeded and stock deducted');
     console.log('====================================');
+
     return res.status(200).json({
       success: true,
       message: "Payment verified successfully",
       order: paymentDetails
-    })
+    });
+
   } catch (error) {
-    next(error)
+    // Rollback all database changes if any operation (stock, cart, payment update) failed
+    await session.abortTransaction();
+
+
+    next(error);
+  } finally {
+    // Ensure session is ended in case of any unexpected errors
+    session.endSession();
   }
 }
 
