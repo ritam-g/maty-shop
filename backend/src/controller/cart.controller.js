@@ -416,6 +416,31 @@ export async function createOrderController(req, res, next) {
       throw new AppError("Cart not found", 404);
     }
 
+    // Phase 1: Stock Validation
+    for (const item of cart.items) {
+      if (!item.product) {
+        throw new AppError("Product not populated in cart", 500);
+      }
+
+      const variantId = item.variant || item.varient;
+      if (!variantId) {
+        throw new AppError("Variant missing in cart item", 400);
+      }
+
+      const selectedVariant = item.product.variants.find(
+        v => v._id && String(v._id) === String(variantId)
+      );
+
+      if (!selectedVariant) {
+        throw new AppError(`Variant not found for product ${item.product.title}`, 400);
+      }
+
+      const stock = Number(selectedVariant.stock ?? 0);
+      if (item.quantity > stock) {
+        throw new AppError(`Insufficient stock for ${item.product.title}. Requested: ${item.quantity}, Available: ${stock}`, 400);
+      }
+    }
+
     const userCartTotalAmount = await getUserTotalPrice(userId);
 
     if (!userCartTotalAmount.length) {
