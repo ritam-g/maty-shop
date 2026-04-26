@@ -104,6 +104,39 @@ const findVariant = (product, variantId) => (
 );
 
 /**
+ * Function Name: validateStockLimit
+ * Purpose: Ensure the requested quantity does not exceed the available stock.
+ * Params:
+ * - productDetails: Product document
+ * - variantId: Selected variant id
+ * - requestedQuantity: The desired quantity
+ * Returns:
+ * - variant object if validation passes
+ */
+const validateStockLimit = (productDetails, variantId, requestedQuantity) => {
+  if (!productDetails) {
+    throw new AppError("Product not found", 404);
+  }
+
+  const variant = findVariant(productDetails, variantId);
+  if (!variant) {
+    throw new AppError("Variant not found", 404);
+  }
+
+  const stock = Number(variant?.stock ?? 0);
+
+  if (stock === 0) {
+    throw new AppError("Out of stock", 400);
+  }
+
+  if (requestedQuantity > stock) {
+    throw new AppError(`Stock limit exceeded. Only ${stock} items available.`, 400);
+  }
+
+  return variant;
+};
+
+/**
  * Function Name: addToCartController
  * Purpose: Add a variant to cart or increase quantity when the same variant already exists.
  * Params:
@@ -127,17 +160,6 @@ export async function addToCartController(req, res, next) {
       "variants._id": variantId,
     });
 
-    if (!productDetails) {
-      throw new AppError("Product not found", 404);
-    }
-
-    const variant = findVariant(productDetails, variantId);
-    const stock = Number(variant?.stock ?? 0);
-
-    if (requestedQuantity > stock) {
-      throw new AppError("Out of stock", 400);
-    }
-
     let cart = await cartModel.findOne({ user: req.user.id });
     if (!cart) {
       cart = await cartModel.create({ user: req.user.id, items: [] });
@@ -147,19 +169,20 @@ export async function addToCartController(req, res, next) {
       (item) => item.product.toString() === productId && item.varient?.toString() === variantId
     );
 
-    if (existingItem) {
-      const nextQuantity = Number(existingItem.quantity || 0) + requestedQuantity;
-      if (nextQuantity > stock) {
-        throw new AppError("Out of stock", 400);
-      }
+    const nextQuantity = existingItem 
+      ? Number(existingItem.quantity || 0) + requestedQuantity 
+      : requestedQuantity;
 
+    const variant = validateStockLimit(productDetails, variantId, nextQuantity);
+
+    if (existingItem) {
       existingItem.quantity = nextQuantity;
       existingItem.price = variant?.price || productDetails.price;
     } else {
       cart.items.push({
         product: productId,
         varient: variantId,
-        quantity: requestedQuantity,
+        quantity: nextQuantity,
         price: variant?.price || productDetails.price,
       });
     }
@@ -227,16 +250,7 @@ export async function updateCartItemQuantityController(req, res, next) {
       "variants._id": variantId,
     });
 
-    if (!productDetails) {
-      throw new AppError("Product not found", 404);
-    }
-
-    const variant = findVariant(productDetails, variantId);
-    const stock = Number(variant?.stock ?? 0);
-
-    if (nextQuantity > stock) {
-      throw new AppError("Out of stock", 400);
-    }
+    const variant = validateStockLimit(productDetails, variantId, nextQuantity);
 
     cart.items[itemIndex].quantity = nextQuantity;
     cart.items[itemIndex].price = variant?.price || productDetails.price;
