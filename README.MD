@@ -2,68 +2,39 @@
 
 ## 📖 Overview
 
-**LocalTruth** is a modern, full-stack MERN application that empowers communities to discover, review, and evaluate local shops and colleges. Enhanced with artificial intelligence (LangChain & Google Generative AI), the platform not only collects reviews but intelligently analyzes them to provide summarized insights, trends, and behavioral tags for places in your local area.
-
-The application uses geospatial data for proximity-based discovery and implements a dynamic, scalable architecture designed for speed and reliability.
+**E-Commerce Platform** (formerly known as Maty Shop) is a full-stack MERN application built for seamless online shopping and inventory management. This modern e-commerce solution provides a premium, responsive user interface combined with a robust backend architecture to handle everything from authentication and product browsing to secure checkout and dashboard analytics.
 
 ---
 
 ## ✨ Key Features
 
-- **🗺️ Geospatial Discovery**: Find shops and colleges near you using MongoDB geospatial queries (`Point` location types).
-- **⭐ Comprehensive Review System**: Users can rate (1-5 stars), comment, and add behavioral tags for entities.
-- **🤖 AI-Enhanced Insights**: Integrates Google Generative AI & LangChain to process all reviews for an entity, generating smart summaries and automated sentiment analysis.
-- **📊 Real-time Aggregation**: Automatically calculates and updates average ratings and review counts on the fly for incredibly fast read operations.
-- **🔐 Secure Authentication**: Robust dual-authentication system utilizing local JWT strategies and Google OAuth via Passport.js.
-- **🎨 Premium UI/UX**: A sleek, responsive frontend built with React, Vite, Tailwind CSS, and beautifully animated with Framer Motion.
-
----
-
-## 🏗️ Architecture & Data Flow
-
-The backend employs a polymorphic schema architecture for maximum flexibility and performance:
-
-```mermaid
-graph TD
-    User[User Collection] -->|writes| Review[Review Collection]
-    Review -->|entityType=Shop| Shop[Shop Collection]
-    Review -->|entityType=College| College[College Collection]
-  
-    subgraph AI Engine
-        GenAI[Google GenAI] -.->|analyzes| Review
-        LangChain[LangChain Graph] -.->|summarizes| GenAI
-    end
-```
-
-### Data Flow Strategy
-
-To maintain highly optimized read speeds, we pre-compute analytics. When a user submits a review:
-
-1. The review is securely stored with dynamic relations (`entityType` and `entityId`).
-2. The system triggers an aggregation pipeline.
-3. The parent entity (Shop/College) has its `rating` and `ratingCount` fields instantly updated.
+- **🔐 Secure Authentication**: Dual authentication support with standard Email/Password (JWT + bcrypt) and seamless Google OAuth (via Passport.js).
+- **🛍️ Comprehensive Product Management**: Dynamic product catalog with advanced search, filtering, and detailed preview components.
+- **🛒 Shopping Cart & Checkout**: Persistent cart management optimized for performance, seamlessly integrated with **Razorpay** for secure payment processing.
+- **📊 Analytics Dashboard**: Dedicated dashboard for sellers to monitor sales, revenue, and manage product inventory efficiently.
+- **☁️ Cloud Image Storage**: Integrated with **ImageKit** and Multer for efficient and scalable product image uploads and delivery.
+- **🎨 Premium UI/UX**: Sleek, modern interface built with React, Vite, **Tailwind CSS v4**, and beautifully animated using **Framer Motion**.
+- **🚀 Production Ready**: Fully configured for deployment (e.g., Render) with trust proxies, rate limiting, and static file serving for the React frontend.
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-
 - **Framework**: React 19 + Vite
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v4, Framer Motion for micro-interactions
+- **State Management**: Redux Toolkit (`@reduxjs/toolkit`, `react-redux`)
+- **Styling**: Tailwind CSS v4, Framer Motion
 - **Routing**: React Router v7
-- **Icons**: Lucide React, React Icons
-- **State Management & Fetching**: Context API / Axios
+- **Icons**: Lucide React
+- **Payments**: React Razorpay
 
 ### Backend
-
-- **Server**: Node.js, Express.js
-- **Language**: TypeScript
-- **Database**: MongoDB (Mongoose)
-- **Authentication**: Passport.js (Google OAuth 2.0), JWT, Bcrypt
-- **AI Integration**: `@langchain/google-genai`, LangGraph
-- **Testing**: Jest, Supertest, MongoDB Memory Server
+- **Server**: Node.js, Express.js v5
+- **Database**: MongoDB (Mongoose v9)
+- **Authentication**: Passport.js (Google OAuth 2.0), JSON Web Tokens (JWT)
+- **File Uploads**: Multer, ImageKit
+- **Payments**: Razorpay SDK
+- **Security**: Helmet, Express Rate Limit, CORS
 
 ---
 
@@ -72,60 +43,60 @@ To maintain highly optimized read speeds, we pre-compute analytics. When a user 
 Follow these steps to get the project running locally.
 
 ### Prerequisites
-
 - Node.js (v18+ recommended)
-- MongoDB running locally or a MongoDB Atlas URI
-- Google Gemini API Key
+- MongoDB running locally or a MongoDB Atlas connection URI
 - Google OAuth Client ID & Secret
+- Razorpay Account (Key ID & Secret)
+- ImageKit Account Keys
 
 ### 1. Clone the repository
-
 ```bash
-git clone https://github.com/your-username/LocalTruth.git
-cd LocalTruth
+git clone <repository-url>
+cd E-Commerce
 ```
 
-### 2. Backend Setup
-
+### 2. Install Dependencies
+You can install both frontend and backend dependencies using the root script:
 ```bash
-cd backend
-npm install
+npm run install:all
 ```
 
+### 3. Environment Configuration
+
+#### Backend (`backend/.env`)
 Create a `.env` file in the `backend` directory:
-
 ```env
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
-GOOGLE_CLIENT_ID=your_google_oauth_client_id
-GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
-GOOGLE_API_KEY=your_gemini_api_key
+CLIENT_ID=your_google_oauth_client_id
+CLIENT_SECRET=your_google_oauth_client_secret
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_URL_ENDPOINT=your_imagekit_url
 ```
 
-Start the backend development server:
-
-```bash
-npm run dev
-```
-
-### 3. Frontend Setup
-
-```bash
-cd ../frontend
-npm install
-```
-
-Create a `.env` file in the `frontend` directory:
-
+#### Frontend (`frontend/.env.local`)
+Create a `.env.local` file in the `frontend` directory:
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
 ```
 
-Start the frontend development server:
+### 4. Running the Application (Development)
 
+To run both the frontend and backend servers simultaneously for development, open two terminal windows.
+
+**Terminal 1 (Backend):**
 ```bash
-npm run dev
+npm run dev:backend
+```
+
+**Terminal 2 (Frontend):**
+```bash
+npm run dev:frontend
 ```
 
 ---
@@ -133,49 +104,45 @@ npm run dev
 ## 📂 Project Structure
 
 ```text
-LocalTruth/
+E-Commerce/
 ├── backend/
+│   ├── public/             # Served React build files (in production)
 │   ├── src/
-│   │   ├── api/            # API specific handlers
-│   │   ├── config/         # Environment & third-party config (Passport, DB)
-│   │   ├── controllers/    # Route controllers
-│   │   ├── middleware/     # Auth & error handling
-│   │   ├── models/         # Mongoose schemas (User, Shop, College, Review)
-│   │   ├── routes/         # Express routers
-│   │   ├── services/       # Core business logic & AI integration
+│   │   ├── config/         # Environment variables & DB config
+│   │   ├── controller/     # Route controllers
+│   │   ├── middleware/     # Global error handling, Auth, Rate limiters
+│   │   ├── model/          # Mongoose schemas (Cart, Payment, Product, User)
+│   │   ├── routes/         # Express routes (Auth, Cart, Product)
+│   │   ├── services/       # Core business logic (Payments, Uploads)
 │   │   ├── utils/          # Helpers
-│   │   ├── validators/     # Request schema validation
-│   │   ├── app.ts          # Express app setup
-│   │   └── server.ts       # Server entry point
+│   │   ├── validator/      # Express validator schemas
+│   │   ├── app.js          # Express app configuration
+│   │   └── server.js       # Entry point
 │   └── package.json
-└── frontend/
-    ├── src/
-    │   ├── assets/         # Static assets
-    │   ├── components/     # Reusable UI elements
-    │   ├── context/        # Global state
-    │   ├── pages/          # Full page views (Discovery, Detail, Auth, etc.)
-    │   ├── services/       # API call wrappers (Axios)
-    │   ├── types/          # TypeScript interfaces
-    │   ├── utils/          # Frontend helpers
-    │   ├── App.tsx         # Main component tree
-    │   └── main.tsx        # React DOM render
-    └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── assets/         # Static assets
+│   │   ├── features/       # Redux slices, components & APIs (Auth, Cart, Dashboard, Product)
+│   │   ├── routes/         # React Router configurations
+│   │   ├── App.jsx         # Main layout & context providers
+│   │   └── main.jsx        # React DOM render
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+└── package.json            # Root configuration for concurrent scripts
 ```
 
 ---
 
-## 🤝 Contributing
+## 🌐 Production Deployment
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+This project is configured to be easily deployed on platforms like Render. The backend `app.js` is set up to serve the statically built React frontend from the `backend/public` folder.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+To build the project for production:
+```bash
+npm run build
+```
+This script will build the Vite frontend, clean the `backend/public` directory, and move the newly compiled React assets over to the backend, ready to be served by Express. Start the production server with:
+```bash
+npm run start
+```
