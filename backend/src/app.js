@@ -97,8 +97,8 @@ const getGoogleCallbackURL = () => {
     // }
 
     // DEFAULT: Use production URL if env variable not set
-    return `http://localhost:5173/api/auth/google/callback`;// for local development
-    // return `https://maty-shop.onrender.com/api/auth/google/callback`;
+    // return `http://localhost:5173/api/auth/google/callback`;// for local development
+    return `https://maty-shop.onrender.com/api/auth/google/callback`;
 };
 
 passport.use(new GoogleStrategy({
