@@ -13,9 +13,7 @@ import React from 'react'
  */
 function ContinueWithGoogle() {
     // Get API base URL from environment variable (defaults to localhost)
-    //! this is for render const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://maty-shop.onrender.com';
-    // const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-    const apiBaseUrl = 'http://localhost:3000';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
     // Construct Google OAuth redirect URL
     // LOCAL: http://localhost:5000/api/auth/google

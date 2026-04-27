@@ -97,20 +97,20 @@ export const googleController = async (req, res, next) => {
         if (user.role !== 'buyer') {
             // its only for render time if you are ruuing in local you can cange in url
             //render
-            // res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
+            res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
 
             // local
-            res.redirect(`http://localhost:5173/seller/dashboard`)
+            // res.redirect(`http://localhost:5173/seller/dashboard`)
 
 
         }
         else {
             // its only for render time if you are ruuing in local you can cange in url
             //render
-            // res.redirect(`https://maty-shop.onrender.com`)
+            res.redirect(`https://maty-shop.onrender.com`)
 
             // local
-            res.redirect(`http://localhost:5173`)
+            // res.redirect(`http://localhost:5173`)
 
         }
 

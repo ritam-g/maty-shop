@@ -12,10 +12,7 @@ import axios from "axios";
  * Configuration: Set VITE_API_BASE_URL in .env.local for production/Render URL
  * Example: VITE_API_BASE_URL=https://maty-shop.onrender.com
  */
-//! render const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://maty-shop.onrender.com';
-// const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-const apiBaseUrl = 'http://localhost:3000';
-
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 const productApi = axios.create({
     // LOCAL: http://localhost:5000/api/product
     // PRODUCTION: https://maty-shop.onrender.com/api/product (set via VITE_API_BASE_URL)
