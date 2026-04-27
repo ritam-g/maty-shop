@@ -115,7 +115,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/product', productRouter);
 app.use('/api/cart', cartRouter);
 
-// Fallback route for React Router - serve index.html for all non-API routes
+//! Fallback route for React Router - serve index.html for all non-API routes
+//updating new build to public backend 
 app.get('*any', (req, res) => {
     // If it's an API route that wasn't matched, don't serve index.html
     if (req.originalUrl.startsWith('/api')) {
