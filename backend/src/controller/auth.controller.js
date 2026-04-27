@@ -1,7 +1,8 @@
 import { AppConfig } from "../config/config.js"
 import { getMeUser, loginService, loginWithGoogle, registerService } from "../services/auth.service.js"
 import { generateToken } from "../utils/tokenService.js"
-
+import dotenv from "dotenv"
+dotenv.config()
 /**
  * Extracts the user ID from a user object in a standardized way
  * @param {Object} user - The user object containing ID information
@@ -94,24 +95,13 @@ export const googleController = async (req, res, next) => {
         const token = generateToken(resolveUserId(user), user.email, user.role)
 
         res.cookie('token', token, { httpOnly: true })
+        const frontendUrl = process.env.FRONTEND_URL || 'https://maty-shop.onrender.com';
+        
         if (user.role !== 'buyer') {
-            // its only for render time if you are ruuing in local you can cange in url
-            //render
-            res.redirect(`https://maty-shop.onrender.com/seller/dashboard`)
-
-            // local
-            // res.redirect(`http://localhost:5173/seller/dashboard`)
-
-
+            res.redirect(`${frontendUrl}/seller/dashboard`)
         }
         else {
-            // its only for render time if you are ruuing in local you can cange in url
-            //render
-            res.redirect(`https://maty-shop.onrender.com`)
-
-            // local
-            // res.redirect(`http://localhost:5173`)
-
+            res.redirect(`${frontendUrl}`)
         }
 
     } catch (error) {

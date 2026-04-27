@@ -11,6 +11,8 @@ import cartRouter from './routes/cart.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
+import {config} from 'dotenv';
+config();
 
 
 // Get the directory name for ES modules
@@ -92,13 +94,9 @@ app.use(express.static(path.join(__dirname, '../public')));
  * - PRODUCTION (RENDER): https://maty-shop.onrender.com/api/auth/google/callback
  */
 const getGoogleCallbackURL = () => {
-    // if (process.env.GOOGLE_CALLBACK_URL) {
-    //     return process.env.GOOGLE_CALLBACK_URL;
-    // }
-
-    // DEFAULT: Use production URL if env variable not set
-    // return `http://localhost:5173/api/auth/google/callback`;// for local development
-    return `https://maty-shop.onrender.com/api/auth/google/callback`;
+    const callbackUrl = process.env.GOOGLE_CALLBACK_URL;
+    console.log("Google Callback:", callbackUrl);
+    return callbackUrl;
 };
 
 passport.use(new GoogleStrategy({
